@@ -1,0 +1,135 @@
+<?php
+
+namespace AsyncAPI\Services\Channels;
+
+use AsyncAPI\Models\<%= payload.name %>;
+<% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
+use AsyncAPI\Models\<%= payload.subClasses[index].name %>;
+<% } %>
+
+use AsyncAPI\Services\MessageBroker\Client;
+use AsyncAPI\Services\MessageBroker\Destination;
+use AsyncAPI\Services\MessageBroker\Message;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializerBuilder;
+use RuntimeException;
+use Rx\Observable;
+use Rx\Subject\Subject;
+
+class <%= channel.name.charAt(0).toUpperCase() + channel.name.slice(1) %>Channel
+{
+
+    private const DISCRIMINATOR_PROPERTY_NAME = '<%= payload.discriminator %>';
+
+    private const MODELS_NAMESPACE = '<%= modelsNamespace %>';
+
+    private const DESTINATION_NAME = '<%= channel.name %>';
+
+    private Client $client;
+    private Destination $destination;
+    private Serializer $serializer;
+
+    private Subject $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject;
+
+    <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
+    private Subject $<%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject;
+    public readonly Observable $<%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>;
+    <% } %>
+
+    public function __construct(Client $client)
+    {
+        if (!$client->isConnected()) {
+            throw new RuntimeException('The message broker client must already be connected.');
+        }
+
+        $this->client = $client;
+
+        $this->destination = new Destination(self::DESTINATION_NAME);
+
+        $this->serializer = SerializerBuilder::create()->build();
+
+        $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject = new Subject();
+
+        <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
+        $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject = new Subject();
+        $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %> = $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject->asObservable();
+        <% } %>
+    }
+
+    public function <%= publishOperationId %>(<%= payload.name %> $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>): void
+    {
+        $message = $this->buildMessageWithObject($<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>);
+
+        $this->client->publish($message, $this->destination);
+    }
+
+    public function <%= subscribeOperationId %>(): Observable
+    {
+        return $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject->asObservable();
+    }
+
+    public function listen(): void
+    {
+        $this->client->subscribe($this->destination, function (Message $message) {
+            $object = $this->extractObjectFromMessage($message);
+
+            $objectFullyQualifiedClassName = get_class($object);
+
+            $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject->onNext($object);
+
+            switch ($objectFullyQualifiedClassName) {
+                <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
+                case <%= payload.subClasses[index].name %>::class:
+                    $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject->onNext($object);
+                    break;
+                <% } %>
+                default:
+                    throw new RuntimeException("Unhandled object class '$objectFullyQualifiedClassName'.");
+            }
+        });
+    }
+
+    private function buildMessageWithObject(object $object): Message
+    {
+        $jsonContent = $this->serializer->serialize($object, 'json');
+
+        $message = new Message('', $jsonContent);
+
+        return $message;
+    }
+
+    private function extractObjectFromMessage(Message $message): object
+    {
+        $body = $message->getBody();
+
+        $data = json_decode($body, true);
+
+        if ($data == null) {
+            throw new RuntimeException('The message body does not contain a valid JSON.');
+        }
+
+        $discriminatorPropertyName = self::DISCRIMINATOR_PROPERTY_NAME;
+
+        if (!array_key_exists($discriminatorPropertyName, $data)) {
+            throw new RuntimeException("The JSON object representation does not contain the '$discriminatorPropertyName' discriminator property.");
+        }
+
+        $discriminatorPropertyValue = $data[$discriminatorPropertyName];
+
+        if (empty($discriminatorPropertyValue)) {
+            throw new RuntimeException("The JSON object '$discriminatorPropertyName' discriminator property is empty.");
+        }
+
+        $type = $this->getFullyQualifiedClassName($discriminatorPropertyValue);
+
+        $object = $this->serializer->deserialize($body, $type, 'json');
+
+        return $object;
+    }
+
+    private function getFullyQualifiedClassName($className): string
+    {
+        return self::MODELS_NAMESPACE . '\\' . $className;
+    }
+
+}
