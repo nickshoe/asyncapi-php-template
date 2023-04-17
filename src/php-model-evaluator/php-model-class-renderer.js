@@ -199,17 +199,46 @@ ${annotationsBlock}
     renderConstructorBlock(currentClass) {
         // TODO: use Constructor property promotion if target is PHP 8 or above
 
-        const constructorParameters = currentClass
-            .getInstanceVariables()
-            .filter((instanceVariable) => !instanceVariable.isDiscriminator())
-            .map((instanceVariable) => {
-                const type = this.renderVariableType(instanceVariable);
+        let constructorParameters = [];
 
-                const variableName = '$' + instanceVariable.getName();
+        if (currentClass.extendsUserDefinedSuperClass()) {
+            constructorParameters = constructorParameters.concat(
+                currentClass.getSuperClass()
+                    .getInstanceVariables()
+                    .filter((instanceVariable) => !instanceVariable.isDiscriminator())
+                    .map((instanceVariable) => {
+                        const type = this.renderVariableType(instanceVariable);
 
-                return `${type} ${variableName}`;
-            })
-            .join(', ');
+                        const variableName = '$' + instanceVariable.getName();
+
+                        return `${type} ${variableName}`;
+                    })
+            );
+        }
+
+        constructorParameters = constructorParameters.concat(
+            currentClass
+                .getInstanceVariables()
+                .filter((instanceVariable) => !instanceVariable.isDiscriminator())
+                .map((instanceVariable) => {
+                    const type = this.renderVariableType(instanceVariable);
+
+                    const variableName = '$' + instanceVariable.getName();
+
+                    return `${type} ${variableName}`;
+                })
+        );
+
+        let superClassConstruction = '';
+        if (currentClass.extendsUserDefinedSuperClass()) {
+            const superClassConstructorArguments = currentClass.getSuperClass()
+                .getInstanceVariables()
+                .filter((instanceVariable) => !instanceVariable.isDiscriminator())
+                .map((instanceVariable) => '$' + instanceVariable.getName())
+                .join(', ');
+
+            superClassConstruction = `    parent::__construct(${superClassConstructorArguments});`;
+        }
 
         const constructorAssignments = currentClass
             .getInstanceVariables()
@@ -218,8 +247,9 @@ ${annotationsBlock}
             .join('\n');
 
         return '' +
-            '  public function __construct(' + constructorParameters + ')\n' +
+            '  public function __construct(' + constructorParameters.join(', ') + ')\n' +
             '  {\n' +
+            (superClassConstruction !== '' ? superClassConstruction + '\n' : '') +
             (constructorAssignments !== '' ? constructorAssignments + '\n' : '') +
             '  }';
     }
