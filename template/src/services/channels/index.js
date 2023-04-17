@@ -4,24 +4,30 @@ import { ClassHierarchyEvaluator } from "../../../../src/class-hierarchy-evaluat
 
 import { File, Text } from "@asyncapi/generator-react-sdk";
 import { render } from "ejs";
+import { Class } from "../../../../src/class-hierarchy-evaluator/class";
 
 const fs = require('fs');
 
 export default function ({ asyncapi, params, originalAsyncAPI }) {
-    const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi);
+    const modelsNamespace = params.modelsNamespace;
+
+    const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi, modelsNamespace);
 
     const classHierarchy = classHierarchyEvaluator.evaluate();
 
-    return evaluate(asyncapi, classHierarchy);
+    const servicesNamespace = params.servicesNamespace;
+
+    return evaluate(asyncapi, classHierarchy, servicesNamespace);
 }
 
 /**
  *
  * @param {AsyncAPIDocument} asyncapi
  * @param {ClassHierarchy} classHierarchy
+ * @param {string} servicesNamespace
  * @returns {JSX.Element[]}
  */
-function evaluate(asyncapi, classHierarchy) {
+function evaluate(asyncapi, classHierarchy, servicesNamespace) {
     const files = [];
 
     for (const channelName of asyncapi.channelNames()) {
@@ -44,15 +50,15 @@ function evaluate(asyncapi, classHierarchy) {
         const payloadClass = classHierarchy.getClass(payloadSchema.uid());
 
         // TODO: create a DTO class
-        const data = buildTemplateData(
+        const templateData = buildTemplateData(
+            servicesNamespace,
             channelName,
             channel.publish().id(),
             channel.subscribe().id(),
-            'AsyncAPI\\\\Models',
             payloadClass
         );
 
-        const file = renderChannelClassFile(data);
+        const file = renderChannelClassFile(templateData);
 
         files.push(file);
     }
@@ -60,14 +66,24 @@ function evaluate(asyncapi, classHierarchy) {
     return files;
 }
 
+/**
+ * 
+ * @param {string} servicesNamespace 
+ * @param {string} channelName 
+ * @param {string} publishOperationId 
+ * @param {string} subscribeOperationId 
+ * @param {Class} payloadClass 
+ * @returns 
+ */
 function buildTemplateData(
+    servicesNamespace,
     channelName,
     publishOperationId,
     subscribeOperationId,
-    modelsNamespace,
     payloadClass
 ) {
     return {
+        servicesNamespace: servicesNamespace,
         channel: {
             name: channelName
         },
@@ -78,21 +94,21 @@ function buildTemplateData(
             })),
             discriminator: payloadClass.getInstanceVariables().filter((variable) => variable.isDiscriminator())[0].getName()
         },
-        modelsNamespace: modelsNamespace,
+        modelsNamespace: payloadClass.getPackageName(),
         publishOperationId: publishOperationId,
         subscribeOperationId: subscribeOperationId
     };
 }
 
-function renderChannelClassFile(data) {
+function renderChannelClassFile(templateData) {
     const template = fs.readFileSync(
         __dirname + '/../../../../src/ejs-templates/channel-class.ejs',
         { encoding: 'utf8', flag: 'r' }
     );
 
-    const output = render(template, data);
+    const output = render(template, templateData);
 
-    const upperCasedChannelName = data.channel.name.charAt(0).toUpperCase() + data.channel.name.slice(1);
+    const upperCasedChannelName = templateData.channel.name.charAt(0).toUpperCase() + templateData.channel.name.slice(1);
     const fileName = `${upperCasedChannelName}Channel.class.php`;
 
     return (

@@ -79,7 +79,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
      * @returns {string}
      */
     getNamespace(currentClass) {
-        return 'AsyncAPI\\Models'; // TODO: parametrize
+        return currentClass.getPackageName();
     }
 
     /**

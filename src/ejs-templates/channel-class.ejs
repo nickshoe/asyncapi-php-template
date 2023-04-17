@@ -1,15 +1,16 @@
 <?php
 
-namespace AsyncAPI\Services\Channels;
+namespace <%= servicesNamespace %>\Channels;
 
-use AsyncAPI\Models\<%= payload.name %>;
-<% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
-use AsyncAPI\Models\<%= payload.subClasses[index].name %>;
-<% } %>
+use <%= modelsNamespace %>\<%= payload.name %>;
+<% for( let index = 0; index < payload.subClasses.length; index++ ) { -%>
+use <%= modelsNamespace %>\<%= payload.subClasses[index].name %>;
+<% } -%>
 
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
+
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use RuntimeException;
@@ -30,11 +31,10 @@ class <%= channel.name.charAt(0).toUpperCase() + channel.name.slice(1) %>Channel
     private Serializer $serializer;
 
     private Subject $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject;
-
     <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
     private Subject $<%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject;
     public readonly Observable $<%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>;
-    <% } %>
+    <% } -%>
 
     public function __construct(Client $client)
     {
@@ -49,11 +49,10 @@ class <%= channel.name.charAt(0).toUpperCase() + channel.name.slice(1) %>Channel
         $this->serializer = SerializerBuilder::create()->build();
 
         $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject = new Subject();
-
         <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
         $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject = new Subject();
         $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %> = $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject->asObservable();
-        <% } %>
+        <% } -%>
     }
 
     public function <%= publishOperationId %>(<%= payload.name %> $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>): void

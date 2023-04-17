@@ -1,0 +1,101 @@
+asyncapi: "2.6.0"
+
+id: "https://github.com/nickshoe/asyncapi-php-template/asyncapi-examle.yml"
+
+info:
+  title: Example App
+  version: "0.1.0"
+  description: |
+    An example app to demonstrate the usage of asyncapi-php-template AsyncAPI generator template.
+  contact:
+    name: Nicolò Scarpa
+    email: nicolo.scarpa@gmail.com
+  license:
+    name: ISC
+
+servers:
+  development:
+    url: localhost:5672
+    protocol: amqp
+    protocolVersion: 0.9.1
+    description: Development server
+    security:
+      - user-password: []
+
+defaultContentType: application/json
+
+channels:
+  events:
+    description: This is the main channel where all application events are published.
+    publish:
+      summary: Publish a Domain Event on the channel.
+      operationId: publishDomainEvent
+      message:
+        messageId: PublishDomainEventMessage
+        name: PublishDomainEventMessage
+        payload:
+          $ref: "#/components/schemas/DomainEvent"
+    subscribe:
+      summary: Subscribe to Domain Events published on the channel.
+      operationId: onDomainEvent
+      message:
+        messageId: OnDomainEventMessage
+        name: OnDomainEventMessage
+        payload:
+          $ref: "#/components/schemas/DomainEvent"
+
+components:
+  securitySchemes:
+    user-password:
+      type: userPassword
+  schemas:
+    DomainEvent:
+      type: object
+      discriminator: _type
+      required:
+        - _type
+      properties:
+        id:
+          type: string
+        _type:
+          type: string
+    UserPasswordResetEvent:
+      description: A user password reset event.
+      allOf:
+        - $ref: "#/components/schemas/DomainEvent"
+        - type: object
+          required:
+            - user
+            - tempPassword
+          properties:
+            user:
+              $ref: "#/components/schemas/User"
+            tempPassword:
+              type: string
+    UserLoginEvent:
+      description: A user login event.
+      allOf:
+        - $ref: "#/components/schemas/DomainEvent"
+        - type: object
+          required:
+            - user
+          properties:
+            user:
+              $ref: "#/components/schemas/User"
+    User:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email

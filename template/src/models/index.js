@@ -1,12 +1,14 @@
 import { ClassHierarchyEvaluator } from "../../../src/class-hierarchy-evaluator/class-hierrachy-evaluator";
-import { PhpEvaluator } from "../../../src/php-evaluator/php-evaluator";
+import { PhpModelEvaluator } from "../../../src/php-model-evaluator/php-model-evaluator";
 
 export default function ({ asyncapi, params, originalAsyncAPI }) {
-  const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi);
+  const modelsNamespace = params.modelsNamespace;
+
+  const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi, modelsNamespace);
 
   const classHierarchy = classHierarchyEvaluator.evaluate();
 
-  const phpEvaluator = new PhpEvaluator(classHierarchy);
+  const phpEvaluator = new PhpModelEvaluator(classHierarchy);
 
   return phpEvaluator.evaluate();
 }

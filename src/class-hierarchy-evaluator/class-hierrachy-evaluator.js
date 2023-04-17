@@ -34,16 +34,18 @@ export class ClassHierarchyEvaluator {
   /**
    *
    * @param {AsyncAPIDocument} asyncapi
+   * @param {string}
    */
-  constructor(asyncapi) {
+  constructor(asyncapi, modelsNamespace) {
     this.debug = false;
 
     this.asyncapi = asyncapi;
+    this.modelsNamespace = modelsNamespace;
 
     const objectClass = new Class(ClassHierarchyEvaluator.OBJECT_CLASS_NAME);
 
     this.classHierarchy = new ClassHierarchy(objectClass);
-    
+
     // TODO: refactor - create method in ClassHierarchy
     const arrayClass = new Class(ClassHierarchyEvaluator.ARRAY_CLASS_NAME);
     arrayClass.setSuperClass(objectClass);
@@ -199,7 +201,7 @@ export class ClassHierarchyEvaluator {
    */
   determineVariableClass(propertySchema) {
     let variableClass;
-    
+
     const propertySchemaType = propertySchema.type();
     switch (propertySchemaType) {
       case "object":
@@ -263,7 +265,8 @@ export class ClassHierarchyEvaluator {
       return schemaClass;
     }
 
-    schemaClass = new Class(className, this.#buildPackageName());
+    const packageName = this.buildPackageName();
+    schemaClass = new Class(className, packageName);
     schemaClass.setSuperClass(baseClass);
     baseClass.addSubClass(schemaClass);
 
@@ -289,9 +292,8 @@ export class ClassHierarchyEvaluator {
    * 
    * @returns {string}
    */
-  #buildPackageName() {
-    // TODO: make it more robust
-    return this.asyncapi.info().title().toLowerCase().replace(/\-|\s/g, ".");
+  buildPackageName() {
+    return this.modelsNamespace; // + '\\' + this.asyncapi.info().title().toLowerCase().replace(/\-|\s/g, "\\");
   }
 
   #log(message) {

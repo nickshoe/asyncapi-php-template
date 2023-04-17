@@ -25,6 +25,16 @@
       "amqp"
     ],
     "parameters": {
+      "modelsNamespace": {
+        "description": "The namespace for the classes that represents the model.",
+        "default": "AsyncAPI\\Models",
+        "required": false
+      },
+      "servicesNamespace": {
+        "description": "The namespace for the classes that represents the services.",
+        "default": "AsyncAPI\\Services",
+        "required": false
+      },
       "server": {
         "description": "The server to be used for code generation output.",
         "required": true

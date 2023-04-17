@@ -3,7 +3,7 @@ import { ClassHierarchy } from "../class-hierarchy-evaluator/class-hierarchy";
 import { ClassRenderer } from "../class-renderer";
 import { PhpModelClassRenderer } from "./php-model-class-renderer";
 
-export class PhpEvaluator {
+export class PhpModelEvaluator {
     /**
      * @type {ClassHierarchy}
      */
