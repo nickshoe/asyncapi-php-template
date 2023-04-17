@@ -1,6 +1,7 @@
 # <%= appTitle %>
 
-## Example
+<% for (let channelName in channels) { -%>
+## Channel '<%= channelName %>' Example
 
 ```php
 <?php
@@ -13,9 +14,13 @@ use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
 use React\EventLoop\Loop;
 use Rx\Scheduler;
 
-use ExampleApp\Services\Channels\EventsChannel;
-use ExampleApp\Models\User;
+use <%= servicesNamespace %>\Channels\<%= channelName.charAt(0).toUpperCase() + channelName.slice(1) %>Channel;
+// TODO: include the subscribe operation payload class
+use ExampleApp\Models\DomainEvent;
+// TODO: cycle through subscribe operations and include the payload type
 use ExampleApp\Models\UserLoginEvent;
+// TODO: cycle through the payload dependencies and include their types
+use ExampleApp\Models\User;
 
 $loop = Loop::get();
 
@@ -24,37 +29,47 @@ Scheduler::setDefaultFactory(function () use ($loop) {
     return new Scheduler\EventLoopScheduler($loop);
 });
 
+// read server type and configuration based on server param and use them here
 $config = new AMQPClientConfig('localhost', 5672, 'user', 'password');
 $client = new AMQPClient($config);
 
 $client->connect();
 
-$eventsChannel = new EventsChannel($client);
+// TODO: use the channel name
+$<%= channelName %>Channel = new <%= channelName.charAt(0).toUpperCase() + channelName.slice(1) %>Channel($client);
 
+// TODO: use the first publish operation payload subclass
+// TODO: instantiate payload dependencies, use a random data generation lib
+// TODO: instantiate the payload object
 $user = new User(321, 'John', 'Doe', 'john.doe@example.com');
 $userLoginEvent = new UserLoginEvent($user);
-$userLoginEvent->setId(123);
 
-$eventsChannel->publishDomainEvent($userLoginEvent);
+$<%= channelName %>Channel-><%= channels[channelName].publish().id() %>($userLoginEvent);
 
-$eventsChannel->userLoginEvent->subscribe(function (UserLoginEvent $userLoginEvent) {
+$<%= channelName %>Channel-><%= channels[channelName].subscribe().id() %>()->subscribe(function (DomainEvent $event) {
+    print_r($event);
+});
+
+// TODO: use the published class subscribe operation
+$<%= channelName %>Channel->userLoginEvent->subscribe(function (UserLoginEvent $userLoginEvent) {
     print_r($userLoginEvent);
 });
 
-$eventsChannel->listen();
+$<%= channelName %>Channel->listen();
 ```
 
 You can also try to publish a message representing an event on your own. Try the following message payload:
 
 ```json
 {
-	"_type": "UserLoginEvent",
-	"id": 124,
-	"user": {
-		"id": 322,
-		"first_name": "Jane",
-		"last_name": "Doe",
-		"email": "jane.doe@example.com"
-	}
+    "_type": "UserLoginEvent",
+    "id": 124,
+    "user": {
+        "id": 322,
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email": "jane.doe@example.com"
+    }
 }
 ```
+<% } %>

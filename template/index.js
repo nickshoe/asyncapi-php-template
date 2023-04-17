@@ -10,12 +10,18 @@ const fs = require('fs');
  * @returns 
  */
 export default function ({ asyncapi, params, originalAsyncAPI }) {
+  const servicesNamespace = params.servicesNamespace;
+
   const template = fs.readFileSync(
     __dirname + '/../src/ejs-templates/README.ejs',
     { encoding: 'utf8', flag: 'r' }
   );
 
-  const output = render(template, { appTitle: asyncapi.info().title() });
+  const output = render(template, {
+    appTitle: asyncapi.info().title(),
+    channels: asyncapi.channels(),
+    servicesNamespace: servicesNamespace
+  });
 
   const readmeFile = <File name="README.md">
     <Text>{output}</Text>
