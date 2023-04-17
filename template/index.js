@@ -1,8 +1,24 @@
 import { File, Text } from "@asyncapi/generator-react-sdk";
+import { AsyncAPIDocument } from "@asyncapi/parser";
+import { render } from "ejs";
 
+const fs = require('fs');
+
+/**
+ * 
+ * @param {InputObject} param0 
+ * @returns 
+ */
 export default function ({ asyncapi, params, originalAsyncAPI }) {
+  const template = fs.readFileSync(
+    __dirname + '/../src/ejs-templates/README.ejs',
+    { encoding: 'utf8', flag: 'r' }
+  );
+
+  const output = render(template, { appTitle: asyncapi.info().title() });
+
   const readmeFile = <File name="README.md">
-    <Text># {asyncapi.info().title()}</Text>
+    <Text>{output}</Text>
   </File>;
 
   const composerBlock = `
@@ -26,4 +42,21 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
   </File>;
 
   return [readmeFile, composerFile];
+}
+
+class InputObject {
+  /**
+   * @type {AsyncAPIDocument} 
+   */
+  asyncapi;
+
+  /**
+   * @type { object }
+   */
+  params;
+
+  /**
+   * @type { string }
+   */
+  originalAsyncAPI;
 }

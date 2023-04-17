@@ -1,0 +1,60 @@
+# <%= appTitle %>
+
+## Example
+
+```php
+<?php
+
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use AsyncAPI\Services\MessageBroker\AMQP\AMQPClientConfig;
+use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
+
+use React\EventLoop\Loop;
+use Rx\Scheduler;
+
+use ExampleApp\Services\Channels\EventsChannel;
+use ExampleApp\Models\User;
+use ExampleApp\Models\UserLoginEvent;
+
+$loop = Loop::get();
+
+// You only need to set the default scheduler once
+Scheduler::setDefaultFactory(function () use ($loop) {
+    return new Scheduler\EventLoopScheduler($loop);
+});
+
+$config = new AMQPClientConfig('localhost', 5672, 'user', 'password');
+$client = new AMQPClient($config);
+
+$client->connect();
+
+$eventsChannel = new EventsChannel($client);
+
+$user = new User(321, 'John', 'Doe', 'john.doe@example.com');
+$userLoginEvent = new UserLoginEvent($user);
+$userLoginEvent->setId(123);
+
+$eventsChannel->publishDomainEvent($userLoginEvent);
+
+$eventsChannel->userLoginEvent->subscribe(function (UserLoginEvent $userLoginEvent) {
+    print_r($userLoginEvent);
+});
+
+$eventsChannel->listen();
+```
+
+You can also try to publish a message representing an event on your own. Try the following message payload:
+
+```json
+{
+	"_type": "UserLoginEvent",
+	"id": 124,
+	"user": {
+		"id": 322,
+		"first_name": "Jane",
+		"last_name": "Doe",
+		"email": "jane.doe@example.com"
+	}
+}
+```
