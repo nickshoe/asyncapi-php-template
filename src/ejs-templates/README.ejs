@@ -1,26 +1,33 @@
 # <%= appTitle %>
 
 <% for (let channelName in channels) { -%>
+    <% const channel = channels[channelName]; %>
 ## Channel '<%= channelName %>' Example
+
+<%= channel.description() %>
 
 ```php
 <?php
 
 require_once(__DIR__ . '/vendor/autoload.php');
 
+<% if (server.protocol() === 'amqp') { -%>
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClientConfig;
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
+<% } -%>
 
 use React\EventLoop\Loop;
 use Rx\Scheduler;
 
 use <%= servicesNamespace %>\Channels\<%= channelName.charAt(0).toUpperCase() + channelName.slice(1) %>Channel;
-// TODO: include the subscribe operation payload class
-use ExampleApp\Models\DomainEvent;
-// TODO: cycle through subscribe operations and include the payload type
-use ExampleApp\Models\UserLoginEvent;
-// TODO: cycle through the payload dependencies and include their types
-use ExampleApp\Models\User;
+<%
+const subscribeOperationClass = classHierarchy.getClass(channel.subscribe().message().payload().uid()); 
+-%>
+
+use <%= subscribeOperationClass.getPackageName() %>\<%= subscribeOperationClass.getName() %>;
+<% for (const subClass of subscribeOperationClass.getSubClasses()) { -%>
+use <%= subClass.getPackageName() %>\<%= subClass.getName() %>;
+<% } -%>
 
 $loop = Loop::get();
 
@@ -29,47 +36,38 @@ Scheduler::setDefaultFactory(function () use ($loop) {
     return new Scheduler\EventLoopScheduler($loop);
 });
 
-// read server type and configuration based on server param and use them here
-$config = new AMQPClientConfig('localhost', 5672, 'user', 'password');
+<%
+if (server.protocol() === 'amqp' && server.protocolVersion() === '0.9.1') {
+    for (const serverSecuritySchema of serverSecuritySchemes) {
+        const USER_PASSWORD_SECURITY_SCHEME_TYPE = 'userPassword';
+        if (serverSecuritySchema.type() === USER_PASSWORD_SECURITY_SCHEME_TYPE) {
+            -%>
+$username = 'user';
+$password = 'password';
+$config = new AMQPClientConfig('<%= server.url().split(':')[0] -%>', <%= server.url().split(':')[1] -%>, $username, $password);
 $client = new AMQPClient($config);
+            <%
+        }
+    }
+} 
+-%>
 
 $client->connect();
 
-// TODO: use the channel name
 $<%= channelName %>Channel = new <%= channelName.charAt(0).toUpperCase() + channelName.slice(1) %>Channel($client);
 
-// TODO: use the first publish operation payload subclass
-// TODO: instantiate payload dependencies, use a random data generation lib
-// TODO: instantiate the payload object
-$user = new User(321, 'John', 'Doe', 'john.doe@example.com');
-$userLoginEvent = new UserLoginEvent($user);
-
-$<%= channelName %>Channel-><%= channels[channelName].publish().id() %>($userLoginEvent);
-
-$<%= channelName %>Channel-><%= channels[channelName].subscribe().id() %>()->subscribe(function (DomainEvent $event) {
-    print_r($event);
+$<%= channelName %>Channel-><%= channel.subscribe().id() %>()->subscribe(function (<%= subscribeOperationClass.getName() %> $<%= subscribeOperationClass.getName().charAt(0).toLowerCase() + subscribeOperationClass.getName().slice(1) %>) {
+    echo "[x] Received a <%= subscribeOperationClass.getName() %> object:\n";
+    print_r($<%= subscribeOperationClass.getName().charAt(0).toLowerCase() + subscribeOperationClass.getName().slice(1) %>);
 });
 
-// TODO: use the published class subscribe operation
-$<%= channelName %>Channel->userLoginEvent->subscribe(function (UserLoginEvent $userLoginEvent) {
-    print_r($userLoginEvent);
+<% for (const subClass of subscribeOperationClass.getSubClasses()) { -%>
+$<%= channelName %>Channel-><%= subClass.getName().charAt(0).toLowerCase() + subClass.getName().slice(1) %>->subscribe(function (<%= subClass.getName() %> $<%= subClass.getName().charAt(0).toLowerCase() + subClass.getName().slice(1) %>) {
+    echo "[x] Received a <%= subClass.getName() %> object:\n";
+    print_r($<%= subClass.getName().charAt(0).toLowerCase() + subClass.getName().slice(1) %>);
 });
+<% } -%>
 
 $<%= channelName %>Channel->listen();
-```
-
-You can also try to publish a message representing an event on your own. Try the following message payload:
-
-```json
-{
-    "_type": "UserLoginEvent",
-    "id": 124,
-    "user": {
-        "id": 322,
-        "first_name": "Jane",
-        "last_name": "Doe",
-        "email": "jane.doe@example.com"
-    }
-}
 ```
 <% } %>
