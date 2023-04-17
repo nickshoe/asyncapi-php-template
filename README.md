@@ -32,9 +32,23 @@ VSCode launch configuration for debugging:
       "name": "Debug template",
       "timeout": 10000,
       "sourceMaps": true,
-      "args": ["./asyncapi-example.yml", "./", "-o", "./output", "--force-write", "-p", "server=development"],
+      "args": [
+        "./asyncapi-example.yml",
+        "./",
+        "-o",
+        "./output",
+        "-p",
+        "server=development",
+        "-p",
+        "modelsNamespace=ExampleApp\\Models",
+        "-p",
+        "servicesNamespace=ExampleApp\\Services",
+        "--force-write",
+        "--debug"
+      ],
       "program": "${workspaceFolder}/node_modules/@asyncapi/generator/cli.js"
     }
   ]
 }
+
 ```
