@@ -17,3 +17,24 @@ Launch the generator, specifying `asyncapi-php-template` as the template name:
 ```shell
 npx asyncapi generate fromTemplate <path-to-asyncapi-yaml> asyncapi-php-template -p server=<server-name> -o ./output
 ```
+
+### Template Development
+
+VSCode launch configuration for debugging:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug template",
+      "timeout": 10000,
+      "sourceMaps": true,
+      "args": ["./asyncapi-example.yml", "./", "-o", "./output", "--force-write", "-p", "server=development"],
+      "program": "${workspaceFolder}/node_modules/@asyncapi/generator/cli.js"
+    }
+  ]
+}
+```
