@@ -1,0 +1,32 @@
+
+
+<%
+const dependencies = {};
+for (const subClass of subscribeOperationClass.getSubClasses()) {
+    for (const instanceVariable of subClass.getInstanceVariables()) {
+        if (!instanceVariable.isDiscriminator() && !instanceVariable.getType().isBuiltInClass()) {
+            dependencies[instanceVariable.getType().getName()] = instanceVariable.getType();
+        }
+    }
+}
+-%>
+<% for (const dependency of Object.values(dependencies)) { -%>
+use <%= dependency.getPackageName() %>\<%= dependency.getName() %>;
+<% } -%>
+
+
+
+You can also try to publish a message representing an event on your own. Try the following message payload:
+
+```json
+{
+    "_type": "UserLoginEvent",
+    "id": 124,
+    "user": {
+        "id": 322,
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email": "jane.doe@example.com"
+    }
+}
+```
