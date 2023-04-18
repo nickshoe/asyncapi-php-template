@@ -11,7 +11,7 @@
 
 require_once(__DIR__ . '/vendor/autoload.php');
 
-<% if (server.protocol() === CONSTANTS.AMQP_PROTOCOL) { -%>
+<% if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) { -%>
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClientConfig;
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
 <% } -%>
