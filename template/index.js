@@ -1,6 +1,7 @@
 import { File, Text } from "@asyncapi/generator-react-sdk";
 import { AsyncAPIDocument } from "@asyncapi/parser";
 import { render } from "ejs";
+import { ChannelDTOEvaluator } from "../src/channel-dto-evaluator/channel-dto-evaluator";
 import { Class } from "../src/class-hierarchy-evaluator/class";
 import { ClassHierarchyEvaluator } from "../src/class-hierarchy-evaluator/class-hierrachy-evaluator";
 
@@ -14,6 +15,7 @@ const fs = require('fs');
 export default function ({ asyncapi, params, originalAsyncAPI }) {
   const serverName = params.server;
   const modelsNamespace = params.modelsNamespace;
+  const servicesNamespace = params.servicesNamespace;
 
   const server = asyncapi.server(serverName);
 
@@ -21,7 +23,9 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
 
   const classHierarchy = classHierarchyEvaluator.evaluate();
 
-  const servicesNamespace = params.servicesNamespace;
+  const channelDTOEvaluator = new ChannelDTOEvaluator();
+  const channelDTOs = channelDTOEvaluator.evaluate(asyncapi, classHierarchy, servicesNamespace);
+
 
   const template = fs.readFileSync(
     __dirname + '/../src/ejs-templates/README.ejs',
@@ -45,14 +49,14 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     server: server,
     serverSecuritySchemes: serverSecuritySchemes,
     appTitle: asyncapi.info().title(),
+    channelDTOs: channelDTOs,
     channels: asyncapi.channels(),
     servicesNamespace: servicesNamespace,
     classHierarchy: classHierarchy,
     upperCaseFirst: upperCaseFirst,
     lowerCaseFirst: lowerCaseFirst,
     classInstanceVariableName: classInstanceVariableName,
-    buildSchemaClassName: ClassHierarchyEvaluator.buildSchemaClassName,
-    buildChannelClassNamePrefix: buildChannelClassNamePrefix
+    buildSchemaClassName: ClassHierarchyEvaluator.buildSchemaClassName
   });
 
   const readmeFile = <File name="README.md">
@@ -123,17 +127,4 @@ function lowerCaseFirst(string) {
  */
 function classInstanceVariableName(clazz) {
   return '$' + lowerCaseFirst(clazz.getName());
-}
-
-/**
- * TODO: duplicated code, see template/src/services/channels/index.js
- * @param {string} channelName 
- * @returns {string}
- */
-function buildChannelClassNamePrefix(channelName) {
-  const nameTokens = channelName.replace(/\/|<|>|\-/g, " ").split(" ");
-
-  const className = nameTokens.map((token) => token.charAt(0).toUpperCase() + token.slice(1)).join("");
-
-  return className;
 }
