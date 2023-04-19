@@ -11,7 +11,10 @@ const OBJECT_CLASS_NAME = "Object";
 const ARRAY_CLASS_NAME = "Array";
 const STRING_CLASS_NAME = "String";
 const INTEGER_CLASS_NAME = "Integer";
+const LONG_CLASS_NAME = "Long";
 const NUMBER_CLASS_NAME = "Number";
+const FLOAT_CLASS_NAME = "Float";
+const DOUBLE_CLASS_NAME = "Double";
 const INSTANT_CLASS_NAME = "Instant";
 
 export class ClassHierarchyEvaluator {
@@ -44,8 +47,20 @@ export class ClassHierarchyEvaluator {
     return INTEGER_CLASS_NAME;
   }
 
+  static get LONG_CLASS_NAME() {
+    return LONG_CLASS_NAME;
+  }
+
   static get NUMBER_CLASS_NAME() {
     return NUMBER_CLASS_NAME;
+  }
+
+  static get FLOAT_CLASS_NAME() {
+    return FLOAT_CLASS_NAME;
+  }
+
+  static get DOUBLE_CLASS_NAME() {
+    return DOUBLE_CLASS_NAME;
   }
 
   static get INSTANT_CLASS_NAME() {
@@ -83,10 +98,25 @@ export class ClassHierarchyEvaluator {
     objectClass.addSubClass(integerClass);
     this.classHierarchy.addClass(integerClass);
 
+    const longClass = new Class(ClassHierarchyEvaluator.LONG_CLASS_NAME);
+    longClass.setSuperClass(objectClass);
+    objectClass.addSubClass(longClass);
+    this.classHierarchy.addClass(longClass);
+
     const numberClass = new Class(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
     numberClass.setSuperClass(objectClass);
     objectClass.addSubClass(numberClass);
     this.classHierarchy.addClass(numberClass);
+
+    const floatClass = new Class(ClassHierarchyEvaluator.FLOAT_CLASS_NAME);
+    floatClass.setSuperClass(objectClass);
+    objectClass.addSubClass(floatClass);
+    this.classHierarchy.addClass(floatClass);
+
+    const doubleClass = new Class(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME);
+    doubleClass.setSuperClass(objectClass);
+    objectClass.addSubClass(doubleClass);
+    this.classHierarchy.addClass(doubleClass);
 
     const instantClass = new Class(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
     instantClass.setSuperClass(objectClass);
@@ -267,16 +297,42 @@ export class ClassHierarchyEvaluator {
               variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
               break;
             default:
-              console.warn(`Treating unknown format '${propertySchema.format()}' as a simple string.`);
+              console.warn(`Treating unknown type '${propertySchemaType}' format '${propertySchema.format()}' as a generic string.`);
               variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
           }
         }
         break;
       case "integer":
-        variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+        if (propertySchema.format() === undefined) {
+          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+        } else {
+          switch (propertySchema.format()) {
+            case 'int32':
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+            case 'int64':
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.LONG_CLASS_NAME);
+              break;
+            default:
+              console.warn(`Treating unknown type '${propertySchemaType}' format '${propertySchema.format()}' as an integer.`);
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+          }
+        }
         break;
       case "number":
-        variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
+        if (propertySchema.format() === undefined) {
+          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
+        } else {
+          switch (propertySchema.format()) {
+            case 'float':
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.FLOAT_CLASS_NAME);
+            case 'double':
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME);
+              break;
+            default:
+              console.warn(`Treating unknown type '${propertySchemaType}' format '${propertySchema.format()}' as a generic number.`);
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
+          }
+        }
         break;
       default:
         throw new Error(`Unhandled property type '${propertySchemaType}'`);

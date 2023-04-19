@@ -14,7 +14,10 @@ export class PhpModelClassRenderer extends ClassRenderer {
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.ARRAY_CLASS_NAME, 'array');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.STRING_CLASS_NAME, 'string');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INTEGER_CLASS_NAME, 'int');
+        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.LONG_CLASS_NAME, 'int');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.NUMBER_CLASS_NAME, 'int');
+        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.FLOAT_CLASS_NAME, 'float');
+        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME, 'float');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INSTANT_CLASS_NAME, '\\DateTime'); // TODO: add param to allow usage of 'DateTimeImmutable'
     }
 
@@ -183,13 +186,15 @@ ${annotationsBlock}
             .getInstanceVariables()
             .filter((instanceVariable) => !instanceVariable.isDiscriminator())
             .map((instanceVariable) => {
-                const type = this.renderVariableType(instanceVariable);
+                const access_modifier = instanceVariable.getAccessibility();
 
-                const modifier = instanceVariable.isReadOnly() ? 'readonly' : '';
+                const attribute = instanceVariable.isReadOnly() ? 'readonly' : '';
+
+                const type = this.renderVariableType(instanceVariable);
 
                 const variableName = '$' + instanceVariable.getName();
 
-                const declaration = [instanceVariable.getAccessibility(), modifier, type, variableName]
+                const declaration = [access_modifier, attribute, type, variableName]
                     .filter(component => component !== '')
                     .join(' ');
 

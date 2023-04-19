@@ -109,3 +109,18 @@ components:
         dateOfBirth:
           type: string
           format: date
+    DataTypes:
+      type: object
+      properties:
+        double:
+          type: number
+          format: double
+        float:
+          type: number
+          format: float
+        integer:
+          type: integer
+          format: int32
+        long:
+          type: integer
+          format: int64
