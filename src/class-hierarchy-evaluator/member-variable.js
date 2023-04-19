@@ -111,6 +111,26 @@ export class InstanceVariable extends MemberVariable {
   #isDiscriminator;
 
   /**
+   *
+   * @param {string} name
+   * @param {Class} type
+   * @param {string} accessibility
+   * @param {boolean} isReadOnly
+   * @param {boolean} isDiscriminator
+   */
+  constructor(
+    name,
+    type,
+    accessibility = ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
+    isReadOnly = false,
+    isDiscriminator = false
+  ) {
+    super(name, type, accessibility, isReadOnly);
+
+    this.#isDiscriminator = isDiscriminator;
+  }
+
+  /**
    * 
    * @returns {boolean}
    */

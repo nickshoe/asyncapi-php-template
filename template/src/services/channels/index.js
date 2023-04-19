@@ -1,4 +1,4 @@
-import { AsyncAPIDocument } from "@asyncapi/parser";
+import { AsyncAPIDocument, Channel } from "@asyncapi/parser";
 import { ClassHierarchy } from "../../../../src/class-hierarchy-evaluator/class-hierarchy";
 import { ClassHierarchyEvaluator } from "../../../../src/class-hierarchy-evaluator/class-hierrachy-evaluator";
 
@@ -47,14 +47,14 @@ function evaluate(asyncapi, classHierarchy, servicesNamespace) {
 
         const payloadSchema = message.payload();
 
-        const payloadClass = classHierarchy.getClass(payloadSchema.uid());
+        const payloadClassName = ClassHierarchyEvaluator.buildSchemaClassName(payloadSchema);
+        const payloadClass = classHierarchy.getClass(payloadClassName);
 
         // TODO: create a DTO class
         const templateData = buildTemplateData(
             servicesNamespace,
             channelName,
-            channel.publish().id(),
-            channel.subscribe().id(),
+            channel,
             payloadClass
         );
 
@@ -70,33 +70,30 @@ function evaluate(asyncapi, classHierarchy, servicesNamespace) {
  * 
  * @param {string} servicesNamespace 
  * @param {string} channelName 
- * @param {string} publishOperationId 
- * @param {string} subscribeOperationId 
+ * @param {Channel} channel 
  * @param {Class} payloadClass 
  * @returns 
  */
 function buildTemplateData(
     servicesNamespace,
     channelName,
-    publishOperationId,
-    subscribeOperationId,
+    channel,
     payloadClass
 ) {
     return {
         servicesNamespace: servicesNamespace,
-        channel: {
-            name: channelName
-        },
+        channelName: channelName,
+        channelClassNamePrefix: buildChannelClassNamePrefix(channelName),
         payload: {
             name: payloadClass.getName(),
             subClasses: payloadClass.getSubClasses().map((subClass) => ({
                 name: subClass.getName()
             })),
-            discriminator: payloadClass.getInstanceVariables().filter((variable) => variable.isDiscriminator())[0].getName()
+            discriminator: payloadClass.getInstanceVariables().filter((variable) => variable.isDiscriminator())[0]?.getName()
         },
         modelsNamespace: payloadClass.getPackageName(),
-        publishOperationId: publishOperationId,
-        subscribeOperationId: subscribeOperationId
+        publishOperationId: channel.publish().id() ? channel.publish().id() : `publish${buildChannelClassNamePrefix(channelName)}`,
+        subscribeOperationId: channel.subscribe().id() ? channel.subscribe().id() : `on${buildChannelClassNamePrefix(channelName)}`
     };
 }
 
@@ -108,12 +105,24 @@ function renderChannelClassFile(templateData) {
 
     const output = render(template, templateData);
 
-    const upperCasedChannelName = templateData.channel.name.charAt(0).toUpperCase() + templateData.channel.name.slice(1);
-    const fileName = `${upperCasedChannelName}Channel.class.php`;
+    const fileName = `${templateData.channelClassNamePrefix}Channel.class.php`;
 
     return (
         <File name={fileName}>
             <Text>{output}</Text>
         </File>
     );
+}
+
+/**
+ * TODO: refactor - duplicated code, see template/index.js
+ * @param {string} channelName
+ * @returns {string}
+ */
+function buildChannelClassNamePrefix(channelName) {
+    const nameTokens = channelName.replace(/\/|<|>|\-/g, " ").split(" ");
+
+    const className = nameTokens.map((token) => token.charAt(0).toUpperCase() + token.slice(1)).join("");
+
+    return className;
 }

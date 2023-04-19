@@ -50,7 +50,9 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     classHierarchy: classHierarchy,
     upperCaseFirst: upperCaseFirst,
     lowerCaseFirst: lowerCaseFirst,
-    classInstanceVariableName: classInstanceVariableName
+    classInstanceVariableName: classInstanceVariableName,
+    buildSchemaClassName: ClassHierarchyEvaluator.buildSchemaClassName,
+    buildChannelClassNamePrefix: buildChannelClassNamePrefix
   });
 
   const readmeFile = <File name="README.md">
@@ -121,4 +123,17 @@ function lowerCaseFirst(string) {
  */
 function classInstanceVariableName(clazz) {
   return '$' + lowerCaseFirst(clazz.getName());
+}
+
+/**
+ * TODO: duplicated code, see template/src/services/channels/index.js
+ * @param {string} channelName 
+ * @returns {string}
+ */
+function buildChannelClassNamePrefix(channelName) {
+  const nameTokens = channelName.replace(/\/|<|>|\-/g, " ").split(" ");
+
+  const className = nameTokens.map((token) => token.charAt(0).toUpperCase() + token.slice(1)).join("");
+
+  return className;
 }

@@ -17,14 +17,14 @@ use RuntimeException;
 use Rx\Observable;
 use Rx\Subject\Subject;
 
-class <%= channel.name.charAt(0).toUpperCase() + channel.name.slice(1) %>Channel
+class <%= channelClassNamePrefix %>Channel
 {
 
     private const DISCRIMINATOR_PROPERTY_NAME = '<%= payload.discriminator %>';
 
     private const MODELS_NAMESPACE = '<%= modelsNamespace %>';
 
-    private const DESTINATION_NAME = '<%= channel.name %>';
+    private const DESTINATION_NAME = '<%= channelName %>';
 
     private Client $client;
     private Destination $destination;
@@ -38,6 +38,7 @@ class <%= channel.name.charAt(0).toUpperCase() + channel.name.slice(1) %>Channel
 
     public function __construct(Client $client)
     {
+
         if (!$client->isConnected()) {
             throw new RuntimeException('The message broker client must already be connected.');
         }
@@ -53,19 +54,24 @@ class <%= channel.name.charAt(0).toUpperCase() + channel.name.slice(1) %>Channel
         $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject = new Subject();
         $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %> = $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject->asObservable();
         <% } -%>
+
     }
 
+    <% if (publishOperationId) { %>
     public function <%= publishOperationId %>(<%= payload.name %> $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>): void
     {
         $message = $this->buildMessageWithObject($<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>);
 
         $this->client->publish($message, $this->destination);
     }
+    <% } -%>
 
+    <% if (subscribeOperationId) { %>
     public function <%= subscribeOperationId %>(): Observable
     {
         return $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject->asObservable();
     }
+    <% } -%>
 
     public function listen(): void
     {

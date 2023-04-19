@@ -19,9 +19,10 @@ use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
 use React\EventLoop\Loop;
 use Rx\Scheduler;
 
-use <%= servicesNamespace %>\Channels\<%= upperCaseFirst(channelName) %>Channel;
+use <%= servicesNamespace %>\Channels\<%= buildChannelClassNamePrefix(channelName) %>Channel;
 <%
-const subscribeOperationClass = classHierarchy.getClass(channel.subscribe().message().payload().uid()); 
+const subscribeOperationClassName = buildSchemaClassName(channel.subscribe().message().payload());
+const subscribeOperationClass = classHierarchy.getClass(subscribeOperationClassName); 
 -%>
 
 use <%= subscribeOperationClass.getPackageName() %>\<%= subscribeOperationClass.getName() %>;
@@ -53,9 +54,15 @@ $client = new AMQPClient($config);
 
 $client->connect();
 
-$<%= channelName %>Channel = new <%= upperCaseFirst(channelName) %>Channel($client);
+<%
+// TODO: use a custom DTO for channel, build it in the channel class evaluator
+const channelClassInstanceName = lowerCaseFirst(buildChannelClassNamePrefix(channelName)) + 'Channel';
+const subscribeOperationMethodName = channel.subscribe().id() ? `${channel.subscribe().id()}()` : `on${buildChannelClassNamePrefix(channelName)}()`;
+-%>
 
-$<%= channelName %>Channel-><%= channel.subscribe().id() %>()->subscribe(
+$<%= channelClassInstanceName %> = new <%= buildChannelClassNamePrefix(channelName) %>Channel($client);
+
+$<%= channelClassInstanceName %>-><%= subscribeOperationMethodName %>->subscribe(
     function (<%= subscribeOperationClass.getName() %> <%= classInstanceVariableName(subscribeOperationClass) %>) {
         echo "[x] Received <%= subscribeOperationClass.getName() %> object:\n";
         print_r(<%= classInstanceVariableName(subscribeOperationClass) %>);
@@ -63,7 +70,7 @@ $<%= channelName %>Channel-><%= channel.subscribe().id() %>()->subscribe(
 );
 
 <% for (const subClass of subscribeOperationClass.getSubClasses()) { -%>
-$<%= channelName %>Channel-><%= lowerCaseFirst(subClass.getName()) %>->subscribe(
+$<%= channelClassInstanceName %>-><%= lowerCaseFirst(subClass.getName()) %>->subscribe(
     function (<%= subClass.getName() %> <%= classInstanceVariableName(subClass) %>) {
         echo "[x] Received <%= subClass.getName() %> object:\n";
         print_r(<%= classInstanceVariableName(subClass) %>);
@@ -71,6 +78,6 @@ $<%= channelName %>Channel-><%= lowerCaseFirst(subClass.getName()) %>->subscribe
 );
 <% } -%>
 
-$<%= channelName %>Channel->listen();
+$<%= channelClassInstanceName %>->listen();
 ```
 <% } %>

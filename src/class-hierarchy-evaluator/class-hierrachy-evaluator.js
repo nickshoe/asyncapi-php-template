@@ -198,7 +198,7 @@ export class ClassHierarchyEvaluator {
       if (componentSchema.discriminator() !== undefined) {
         this.#log(`Schema '${schema.uid()}' is a sub class of '${componentSchema.uid()}' super class`);
 
-        const superClassName = this.#buildSchemaClassName(componentSchema);
+        const superClassName = ClassHierarchyEvaluator.buildSchemaClassName(componentSchema);
 
         const baseClass = this.classHierarchy.getClass(superClassName);
 
@@ -266,7 +266,7 @@ export class ClassHierarchyEvaluator {
     const propertySchemaType = propertySchema.type();
     switch (propertySchemaType) {
       case "object":
-        const propertySchemaClassName = this.#buildSchemaClassName(propertySchema);
+        const propertySchemaClassName = ClassHierarchyEvaluator.buildSchemaClassName(propertySchema);
         variableClass = this.classHierarchy.getClass(propertySchemaClassName);
 
         if (variableClass === null) {
@@ -352,7 +352,7 @@ export class ClassHierarchyEvaluator {
    * @returns {Class}
    */
   #setupSchemaClassIfNotPresent(schema, baseClass = null) {
-    const className = this.#buildSchemaClassName(schema);
+    const className = ClassHierarchyEvaluator.buildSchemaClassName(schema);
 
     if (baseClass === null) {
       baseClass = this.classHierarchy.getRootClass();
@@ -379,7 +379,7 @@ export class ClassHierarchyEvaluator {
    * @param {Schema} schema
    * @returns {string}
    */
-  #buildSchemaClassName(schema) {
+  static buildSchemaClassName(schema) {
     const nameTokens = schema.uid().replace(/<|>/g, "").split("-");
 
     const className = nameTokens.map((token) => token.charAt(0).toUpperCase() + token.slice(1)).join("");
