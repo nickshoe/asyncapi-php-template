@@ -262,6 +262,7 @@ export class ClassHierarchyEvaluator {
           variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
         } else {
           switch (propertySchema.format()) {
+            case 'date':
             case 'date-time':
               variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
               break;
