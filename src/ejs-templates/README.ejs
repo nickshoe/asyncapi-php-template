@@ -1,6 +1,16 @@
 # <%= appTitle %>
 
-<% for (const channelDTO of channelDTOs) { -%>
+<% for (const channelDTO of channelDTOs) {
+    const usedClasses = [];
+    if (channelDTO.subscribeOperation) {
+        usedClasses.push(channelDTO.subscribeOperation.payload.name);
+        for (const subClass of channelDTO.subscribeOperation.payload.subClasses) {
+            usedClasses.push(subClass.name);
+        }
+    }
+
+    const channelClassInstanceName = lowerCaseFirst(channelDTO.channelClassNamePrefix) + 'Channel';
+    -%>
 ## Channel '<%= channelDTO.channelName %>' Example
 
 <%= channelDTO.channel.description() %>
@@ -19,13 +29,9 @@ use React\EventLoop\Loop;
 use Rx\Scheduler;
 
 use <%= servicesNamespace %>\Channels\<%= channelDTO.channelClassNamePrefix %>Channel;
-<%
-const subscribeOperationClass = classHierarchy.getClass(channelDTO.payload.name); 
--%>
 
-use <%= subscribeOperationClass.getPackageName() %>\<%= subscribeOperationClass.getName() %>;
-<% for (const subClass of subscribeOperationClass.getSubClasses()) { -%>
-use <%= subClass.getPackageName() %>\<%= subClass.getName() %>;
+<% for (let usedClass of usedClasses) { -%>
+use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
 
 $loop = Loop::get();
@@ -52,30 +58,27 @@ $client = new AMQPClient($config);
 
 $client->connect();
 
-<%
-// TODO: use a custom DTO for channel, build it in the channel class evaluator
-const channelClassInstanceName = lowerCaseFirst(channelDTO.channelClassNamePrefix) + 'Channel';
-const subscribeOperationMethodName = channelDTO.channel.subscribe().id() ? `${channelDTO.channel.subscribe().id()}()` : `on${buildChannelClassNamePrefix(channelName)}()`;
--%>
-
 $<%= channelClassInstanceName %> = new <%= channelDTO.channelClassNamePrefix %>Channel($client);
 
-$<%= channelClassInstanceName %>-><%= subscribeOperationMethodName %>->subscribe(
-    function (<%= subscribeOperationClass.getName() %> <%= classInstanceVariableName(subscribeOperationClass) %>) {
-        echo "[x] Received <%= subscribeOperationClass.getName() %> object:\n";
-        print_r(<%= classInstanceVariableName(subscribeOperationClass) %>);
+<% if (channelDTO.subscribeOperation) { -%>
+$<%= channelClassInstanceName %>-><%= channelDTO.subscribeOperation.name %>()->subscribe(
+    function (<%= channelDTO.subscribeOperation.payload.name %> <%= classInstanceVariableName(channelDTO.subscribeOperation.payload.name) %>) {
+        echo "[x] Received <%= channelDTO.subscribeOperation.payload.name %> object:\n";
+        print_r(<%= classInstanceVariableName(channelDTO.subscribeOperation.payload.name) %>);
     }
 );
 
-<% for (const subClass of subscribeOperationClass.getSubClasses()) { -%>
-$<%= channelClassInstanceName %>-><%= lowerCaseFirst(subClass.getName()) %>->subscribe(
-    function (<%= subClass.getName() %> <%= classInstanceVariableName(subClass) %>) {
-        echo "[x] Received <%= subClass.getName() %> object:\n";
-        print_r(<%= classInstanceVariableName(subClass) %>);
+<% for (const subClass of channelDTO.subscribeOperation.payload.subClasses) { -%>
+$<%= channelClassInstanceName %>-><%= lowerCaseFirst(subClass.name) %>->subscribe(
+    function (<%= subClass.name %> <%= classInstanceVariableName(subClass.name) %>) {
+        echo "[x] Received <%= subClass.name %> object:\n";
+        print_r(<%= classInstanceVariableName(subClass.name) %>);
     }
 );
 <% } -%>
 
 $<%= channelClassInstanceName %>->listen();
+<% } -%>
 ```
+
 <% } %>

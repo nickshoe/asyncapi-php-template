@@ -6,16 +6,14 @@ import { ClassHierarchyEvaluator } from "../../../../src/class-hierarchy-evaluat
 const fs = require('fs');
 
 export default function ({ asyncapi, params, originalAsyncAPI }) {
+    const servicesNamespace = params.servicesNamespace;
     const modelsNamespace = params.modelsNamespace;
 
     const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi, modelsNamespace);
-
     const classHierarchy = classHierarchyEvaluator.evaluate();
 
-    const servicesNamespace = params.servicesNamespace;
-
-    const channelDtoEvaluator = new ChannelDTOEvaluator();
-    const dtos = channelDtoEvaluator.evaluate(asyncapi, classHierarchy, servicesNamespace);
+    const channelDTOEvaluator = new ChannelDTOEvaluator(classHierarchy, servicesNamespace, modelsNamespace);
+    const dtos = channelDTOEvaluator.evaluate(asyncapi);
 
     const files = dtos.map((dto) => renderChannelClassFile(dto));
 
@@ -33,7 +31,26 @@ function renderChannelClassFile(dto) {
         { encoding: 'utf8', flag: 'r' }
     );
 
-    const output = render(template, dto);
+    const usedClasses = [];
+    if (dto.publishOperation) {
+        usedClasses.push(dto.publishOperation.payload.name);
+        for (const subClass of dto.publishOperation.payload.subClasses) {
+            usedClasses.push(subClass.name);
+        }
+    }
+    if (dto.subscribeOperation) {
+        usedClasses.push(dto.subscribeOperation.payload.name);
+        for (const subClass of dto.subscribeOperation.payload.subClasses) {
+            usedClasses.push(subClass.name);
+        }
+    }
+    const usedClassesDeduped = [... new Set(usedClasses)];
+
+    const output = render(template, {
+        ...dto,
+        usedClasses: usedClassesDeduped,
+        lowerCaseFirst: lowerCaseFirst
+    });
 
     const fileName = `${dto.channelClassNamePrefix}Channel.class.php`;
 
@@ -42,4 +59,14 @@ function renderChannelClassFile(dto) {
             <Text>{output}</Text>
         </File>
     );
+}
+
+/**
+ * TODO: refactor - duplicated function - create render utils class
+ * 
+ * @param {string} string 
+ * @returns {string}
+ */
+function lowerCaseFirst(string) {
+    return string.charAt(0).toLowerCase() + string.slice(1);
 }

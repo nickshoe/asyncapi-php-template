@@ -20,12 +20,10 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
   const server = asyncapi.server(serverName);
 
   const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi, modelsNamespace);
-
   const classHierarchy = classHierarchyEvaluator.evaluate();
 
-  const channelDTOEvaluator = new ChannelDTOEvaluator();
-  const channelDTOs = channelDTOEvaluator.evaluate(asyncapi, classHierarchy, servicesNamespace);
-
+  const channelDTOEvaluator = new ChannelDTOEvaluator(classHierarchy, servicesNamespace, modelsNamespace);
+  const channelDTOs = channelDTOEvaluator.evaluate(asyncapi);
 
   const template = fs.readFileSync(
     __dirname + '/../src/ejs-templates/README.ejs',
@@ -52,6 +50,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     channelDTOs: channelDTOs,
     channels: asyncapi.channels(),
     servicesNamespace: servicesNamespace,
+    modelsNamespace: modelsNamespace,
     classHierarchy: classHierarchy,
     upperCaseFirst: upperCaseFirst,
     lowerCaseFirst: lowerCaseFirst,
@@ -122,9 +121,9 @@ function lowerCaseFirst(string) {
 }
 
 /** 
- * @param {Class} clazz
+ * @param {string} className
  * @returns {string}
  */
-function classInstanceVariableName(clazz) {
-  return '$' + lowerCaseFirst(clazz.getName());
+function classInstanceVariableName(className) {
+  return '$' + lowerCaseFirst(className);
 }

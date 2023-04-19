@@ -43,6 +43,18 @@ channels:
         name: OnDomainEventMessage
         payload:
           $ref: "#/components/schemas/DomainEvent"
+  users/{userId}/notifications:
+    description: The channel on which notifications for a specific user are published.
+    parameters:
+      userId:
+        description: The id of the user.
+        schema:
+          type: string
+    subscribe:
+      operationId: onUserNotification
+      message:
+        payload:
+          $ref: "#/components/schemas/Notification"
 
 components:
   securitySchemes:
@@ -54,6 +66,8 @@ components:
       discriminator: _type
       required:
         - _type
+        - id
+        - createdAt
       properties:
         _type:
           type: string
@@ -124,3 +138,35 @@ components:
         long:
           type: integer
           format: int64
+    Notification:
+      type: object
+      discriminator: _type
+      required:
+        - _type
+        - id
+        - createdAt
+        - status
+      properties:
+        _type:
+          type: string
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        createdAt:
+          type: string
+          format: date-time
+          example: '2012-04-23T18:25:43.511Z'
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - NEW
+            - DELIVERED
+            - SEEN
+            - READ
+            - ARCHIVED
+    PasswordResetRequestedNotification:
+      description: Somebody has requested the password reset.
+      allOf:
+        - $ref: "#/components/schemas/Notification"

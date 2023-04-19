@@ -2,9 +2,8 @@
 
 namespace <%= servicesNamespace %>\Channels;
 
-use <%= modelsNamespace %>\<%= payload.name %>;
-<% for( let index = 0; index < payload.subClasses.length; index++ ) { -%>
-use <%= modelsNamespace %>\<%= payload.subClasses[index].name %>;
+<% for (let usedClass of usedClasses) { -%>
+use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
 
 use AsyncAPI\Services\MessageBroker\Client;
@@ -20,7 +19,9 @@ use Rx\Subject\Subject;
 class <%= channelClassNamePrefix %>Channel
 {
 
-    private const DISCRIMINATOR_PROPERTY_NAME = '<%= payload.discriminator %>';
+    <% if (subscribeOperation) { %>
+    private const DISCRIMINATOR_PROPERTY_NAME = '<%= subscribeOperation.payload.discriminator %>';
+    <% } -%>
 
     private const MODELS_NAMESPACE = '<%= modelsNamespace %>';
 
@@ -30,10 +31,12 @@ class <%= channelClassNamePrefix %>Channel
     private Destination $destination;
     private Serializer $serializer;
 
-    private Subject $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject;
-    <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
-    private Subject $<%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject;
-    public readonly Observable $<%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>;
+    <% if (subscribeOperation) { %>
+    private Subject $<%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject;
+    <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+    private Subject $<%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject;
+    public readonly Observable $<%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>;
+    <% } -%>
     <% } -%>
 
     public function __construct(Client $client)
@@ -49,27 +52,29 @@ class <%= channelClassNamePrefix %>Channel
 
         $this->serializer = SerializerBuilder::create()->build();
 
-        $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject = new Subject();
-        <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
-        $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject = new Subject();
-        $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %> = $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject->asObservable();
+        <% if (subscribeOperation) { %>
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject = new Subject();
+        <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject = new Subject();
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %> = $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->asObservable();
+        <% } -%>
         <% } -%>
 
     }
 
-    <% if (publishOperationId) { %>
-    public function <%= publishOperationId %>(<%= payload.name %> $<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>): void
+    <% if (publishOperation) { %>
+    public function <%= publishOperation.name %>(<%= publishOperation.payload.name %> $<%= lowerCaseFirst(publishOperation.payload.name) %>): void
     {
-        $message = $this->buildMessageWithObject($<%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>);
+        $message = $this->buildMessageWithObject($<%= lowerCaseFirst(publishOperation.payload.name) %>);
 
         $this->client->publish($message, $this->destination);
     }
     <% } -%>
 
-    <% if (subscribeOperationId) { %>
-    public function <%= subscribeOperationId %>(): Observable
+    <% if (subscribeOperation) { %>
+    public function <%= subscribeOperation.name %>(): Observable
     {
-        return $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject->asObservable();
+        return $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->asObservable();
     }
     <% } -%>
 
@@ -78,14 +83,13 @@ class <%= channelClassNamePrefix %>Channel
         $this->client->subscribe($this->destination, function (Message $message) {
             $object = $this->extractObjectFromMessage($message);
 
+            $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->onNext($object);
+            
             $objectFullyQualifiedClassName = get_class($object);
-
-            $this-><%= payload.name.charAt(0).toLowerCase() + payload.name.slice(1) %>Subject->onNext($object);
-
             switch ($objectFullyQualifiedClassName) {
-                <% for( let index = 0; index < payload.subClasses.length; index++ ) { %>
-                case <%= payload.subClasses[index].name %>::class:
-                    $this-><%= payload.subClasses[index].name.charAt(0).toLowerCase() + payload.subClasses[index].name.slice(1) %>Subject->onNext($object);
+                <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+                case <%= subscribeOperation.payload.subClasses[index].name %>::class:
+                    $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->onNext($object);
                     break;
                 <% } %>
                 default:
@@ -103,7 +107,7 @@ class <%= channelClassNamePrefix %>Channel
         return $message;
     }
 
-    private function extractObjectFromMessage(Message $message): object
+    private function extractObjectFromMessage(Message $message): <%= subscribeOperation.payload.name %>
     {
         $body = $message->getBody();
 
