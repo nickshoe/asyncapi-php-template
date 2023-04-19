@@ -1,4 +1,5 @@
 import { Class } from "./class";
+import { ClassHierarchyEvaluator } from "./class-hierrachy-evaluator";
 
 
 export class Variable {
@@ -58,12 +59,12 @@ export class MemberVariable extends Variable {
   constructor(
     name,
     type,
-    accessibility = 'private',
+    accessibility = ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
     isReadOnly = false
   ) {
     super(name, type);
 
-    this.#accessibility = accessibility; // TODO: use enum
+    this.#accessibility = accessibility;
 
     this.#isReadOnly = isReadOnly;
   }
@@ -81,7 +82,7 @@ export class MemberVariable extends Variable {
    * @returns {boolean}
    */
   isPrivate() {
-    return this.#accessibility === 'private';
+    return this.#accessibility === ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER;
   }
 
   /**

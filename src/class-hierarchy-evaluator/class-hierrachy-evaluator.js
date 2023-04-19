@@ -3,6 +3,10 @@ import { Class } from "./class";
 import { ClassHierarchy } from "./class-hierarchy";
 import { InstanceVariable, TypeVariable, Variable } from "./member-variable";
 
+const PRIVATE_ACCESS_MODIFIER = 'private';
+const PROTECTED_ACCESS_MODIFIER = 'protected';
+const PUBLIC_ACCESS_MODIFIER = 'public';
+
 const OBJECT_CLASS_NAME = "Object";
 const ARRAY_CLASS_NAME = "Array";
 const STRING_CLASS_NAME = "String";
@@ -11,6 +15,18 @@ const NUMBER_CLASS_NAME = "Number";
 const INSTANT_CLASS_NAME = "Instant";
 
 export class ClassHierarchyEvaluator {
+
+  static get PRIVATE_ACCESS_MODIFIER() {
+    return PRIVATE_ACCESS_MODIFIER;
+  }
+
+  static get PROTECTED_ACCESS_MODIFIER() {
+    return PROTECTED_ACCESS_MODIFIER;
+  }
+
+  static get PUBLIC_ACCESS_MODIFIER() {
+    return PUBLIC_ACCESS_MODIFIER;
+  }
 
   static get OBJECT_CLASS_NAME() {
     return OBJECT_CLASS_NAME;
@@ -201,7 +217,12 @@ export class ClassHierarchyEvaluator {
   buildInstanceVariable(propertySchema, propertyName) {
     const variableClass = this.determineVariableClass(propertySchema);
 
-    return new InstanceVariable(propertyName, variableClass, 'private', propertySchema.readOnly());
+    return new InstanceVariable(
+      propertyName,
+      variableClass,
+      ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
+      propertySchema.readOnly()
+    );
   }
 
   /**
