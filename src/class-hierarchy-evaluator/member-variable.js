@@ -2,12 +2,20 @@ import { Class } from "./class";
 
 
 export class Variable {
-  _name;
-  _type;
+
+  /**
+   * @type {string}
+   */
+  #name;
+
+  /**
+   * @type {string}
+   */
+  #type;
 
   constructor(name, type) {
-    this._name = name;
-    this._type = type;
+    this.#name = name;
+    this.#type = type;
   }
 
   /**
@@ -15,7 +23,7 @@ export class Variable {
    * @returns {string}
    */
   getName() {
-    return this._name;
+    return this.#name;
   }
 
   /**
@@ -23,26 +31,41 @@ export class Variable {
    * @returns {Class}
    */
   getType() {
-    return this._type;
+    return this.#type;
   }
+
 }
 
 export class MemberVariable extends Variable {
+
   /**
    * @type {string}
    */
-  _accessibility;
+  #accessibility;
+
+  /**
+   * @type {boolean}
+   */
+  #isReadOnly;
 
   /**
    *
    * @param {string} name
    * @param {Class} type
    * @param {string} accessibility
+   * @param {boolean} isReadOnly
    */
-  constructor(name, type, accessibility = 'private') {
+  constructor(
+    name,
+    type,
+    accessibility = 'private',
+    isReadOnly = false
+  ) {
     super(name, type);
 
-    this._accessibility = accessibility; // TODO: use enum
+    this.#accessibility = accessibility; // TODO: use enum
+
+    this.#isReadOnly = isReadOnly;
   }
 
   /**
@@ -50,7 +73,7 @@ export class MemberVariable extends Variable {
    * @returns {string}
    */
   getAccessibility() {
-    return this._accessibility;
+    return this.#accessibility;
   }
 
   /**
@@ -58,31 +81,50 @@ export class MemberVariable extends Variable {
    * @returns {boolean}
    */
   isPrivate() {
-    return this._accessibility === 'private';
-  }
-}
-
-export class InstanceVariable extends MemberVariable {
-  /**
-   * @type {boolean}
-   */
-  _isDiscriminator;
-
-  /**
-   * 
-   * @param {boolean} isDiscriminator 
-   */
-  setIsDiscrimnator(isDiscriminator) {
-    this._isDiscriminator = isDiscriminator;
+    return this.#accessibility === 'private';
   }
 
   /**
    * 
    * @returns {boolean}
    */
-  isDiscriminator() {
-    return this._isDiscriminator;
+  isReadOnly() {
+    return this.#isReadOnly;
   }
+
+  /**
+   * 
+   * @param {boolean} isReadOnly 
+   */
+  setIsReadOnly(isReadOnly) {
+    this.#isReadOnly = isReadOnly;
+  }
+
+}
+
+export class InstanceVariable extends MemberVariable {
+
+  /**
+   * @type {boolean}
+   */
+  #isDiscriminator;
+
+  /**
+   * 
+   * @returns {boolean}
+   */
+  isDiscriminator() {
+    return this.#isDiscriminator;
+  }
+
+  /**
+   * 
+   * @param {boolean} isDiscriminator 
+   */
+  setIsDiscrimnator(isDiscriminator) {
+    this.#isDiscriminator = isDiscriminator;
+  }
+
 }
 
 export class TypeVariable extends Variable { }

@@ -201,7 +201,7 @@ export class ClassHierarchyEvaluator {
   buildInstanceVariable(propertySchema, propertyName) {
     const variableClass = this.determineVariableClass(propertySchema);
 
-    return new InstanceVariable(propertyName, variableClass);
+    return new InstanceVariable(propertyName, variableClass, 'private', propertySchema.readOnly());
   }
 
   /**

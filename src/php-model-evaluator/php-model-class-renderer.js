@@ -185,9 +185,15 @@ ${annotationsBlock}
             .map((instanceVariable) => {
                 const type = this.renderVariableType(instanceVariable);
 
+                const modifier = instanceVariable.isReadOnly() ? 'readonly' : '';
+
                 const variableName = '$' + instanceVariable.getName();
 
-                return `  ${instanceVariable.getAccessibility()} ${type} ${variableName};`;
+                const declaration = [instanceVariable.getAccessibility(), modifier, type, variableName]
+                    .filter(component => component !== '')
+                    .join(' ');
+
+                return `  ${declaration};`;
             })
             .join(`\n`);
     }
@@ -265,7 +271,15 @@ ${annotationsBlock}
             .getInstanceVariables()
             .filter((instanceVariable) => !instanceVariable.isDiscriminator())
             .filter((instanceVariable) => instanceVariable.isPrivate())
-            .map((instanceVariable) => this.renderGetterBlock(instanceVariable) + '\n\n' + this.renderSetterBlock(instanceVariable))
+            .map((instanceVariable) => {
+                let accessorBlock = this.renderGetterBlock(instanceVariable);
+
+                if (!instanceVariable.isReadOnly()) {
+                    accessorBlock += '\n\n' + this.renderSetterBlock(instanceVariable);
+                }
+
+                return accessorBlock;
+            })
             .join('\n\n');
     }
 

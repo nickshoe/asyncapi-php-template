@@ -57,12 +57,15 @@ components:
       properties:
         _type:
           type: string
+          readOnly: true
         id:
           type: string
+          readOnly: true
         createdAt:
           type: string
           format: date-time
           example: '2012-04-23T18:25:43.511Z'
+          readOnly: true
     UserPasswordResetEvent:
       description: A user password reset event.
       allOf:
