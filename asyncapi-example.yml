@@ -55,10 +55,14 @@ components:
       required:
         - _type
       properties:
-        id:
-          type: string
         _type:
           type: string
+        id:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+          example: '2012-04-23T18:25:43.511Z'
     UserPasswordResetEvent:
       description: A user password reset event.
       allOf:

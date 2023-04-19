@@ -15,6 +15,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.STRING_CLASS_NAME, 'string');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INTEGER_CLASS_NAME, 'int');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.NUMBER_CLASS_NAME, 'int');
+        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INSTANT_CLASS_NAME, '\\DateTime'); // TODO: add param to allow usage of 'DateTimeImmutable'
     }
 
     /**

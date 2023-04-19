@@ -8,6 +8,7 @@ const ARRAY_CLASS_NAME = "Array";
 const STRING_CLASS_NAME = "String";
 const INTEGER_CLASS_NAME = "Integer";
 const NUMBER_CLASS_NAME = "Number";
+const INSTANT_CLASS_NAME = "Instant";
 
 export class ClassHierarchyEvaluator {
 
@@ -29,6 +30,10 @@ export class ClassHierarchyEvaluator {
 
   static get NUMBER_CLASS_NAME() {
     return NUMBER_CLASS_NAME;
+  }
+
+  static get INSTANT_CLASS_NAME() {
+    return INSTANT_CLASS_NAME;
   }
 
   /**
@@ -66,6 +71,11 @@ export class ClassHierarchyEvaluator {
     numberClass.setSuperClass(objectClass);
     objectClass.addSubClass(numberClass);
     this.classHierarchy.addClass(numberClass);
+
+    const instantClass = new Class(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
+    instantClass.setSuperClass(objectClass);
+    objectClass.addSubClass(instantClass);
+    this.classHierarchy.addClass(instantClass);
   }
 
   /**
@@ -227,7 +237,18 @@ export class ClassHierarchyEvaluator {
         variableClass.addTypeVariable(typeVariable);
         break;
       case "string":
-        variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+        if (propertySchema.format() !== undefined) {
+          switch (propertySchema.format()) {
+            case 'date-time':
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
+              break;
+            default:
+              console.warn(`Treating unknown format '${propertySchema.format()}' as a simple string.`);
+              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+          }
+        } else {
+          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+        }
         break;
       case "integer":
         variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
