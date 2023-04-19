@@ -335,7 +335,7 @@ export class ClassHierarchyEvaluator {
    * @returns {string}
    */
   buildPackageName() {
-    return this.modelsNamespace; // + '\\' + this.asyncapi.info().title().toLowerCase().replace(/\-|\s/g, "\\");
+    return this.modelsNamespace;
   }
 
   #log(message) {
