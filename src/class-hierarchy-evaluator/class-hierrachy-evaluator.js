@@ -258,7 +258,9 @@ export class ClassHierarchyEvaluator {
         variableClass.addTypeVariable(typeVariable);
         break;
       case "string":
-        if (propertySchema.format() !== undefined) {
+        if (propertySchema.format() === undefined) {
+          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+        } else {
           switch (propertySchema.format()) {
             case 'date-time':
               variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
@@ -267,8 +269,6 @@ export class ClassHierarchyEvaluator {
               console.warn(`Treating unknown format '${propertySchema.format()}' as a simple string.`);
               variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
           }
-        } else {
-          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
         }
         break;
       case "integer":
