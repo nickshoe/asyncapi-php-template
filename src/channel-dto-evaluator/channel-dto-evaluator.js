@@ -222,7 +222,7 @@ export class Payload {
     subClasses;
 
     /**
-     * @type {string}
+     * @type {string|null}
      */
     discriminator;
 }

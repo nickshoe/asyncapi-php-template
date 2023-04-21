@@ -18,7 +18,8 @@ use Rx\Subject\Subject;
 class <%= channelClassNamePrefix %>Channel
 {
 
-<% if (subscribeOperation) { -%>
+<%# handles polymorphic message payloads -%>
+<% if (subscribeOperation && subscribeOperation.payload.discriminator !== null) { -%>
     private const DISCRIMINATOR_PROPERTY_NAME = '<%= subscribeOperation.payload.discriminator %>';
 <% } -%>
 
@@ -101,7 +102,8 @@ class <%= channelClassNamePrefix %>Channel
             $object = $this->extractObjectFromMessage($message);
 
             $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->onNext($object);
-            
+<%# handles polymorphic message payloads -%>
+<% if (subscribeOperation.payload.discriminator !== null) { -%>
             $objectFullyQualifiedClassName = get_class($object);
             switch ($objectFullyQualifiedClassName) {
                 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
@@ -112,13 +114,15 @@ class <%= channelClassNamePrefix %>Channel
                 default:
                     throw new RuntimeException("Unhandled object class '$objectFullyQualifiedClassName'.");
             }
+<% } -%>
         });
     }
 
     private function extractObjectFromMessage(Message $message): <%= subscribeOperation.payload.name %>
     {
         $body = $message->getBody();
-
+<%# handles polymorphic message payloads -%>
+<% if (subscribeOperation.payload.discriminator !== null) { -%>
         $data = json_decode($body, true);
 
         if ($data == null) {
@@ -138,6 +142,9 @@ class <%= channelClassNamePrefix %>Channel
         }
 
         $type = $this->getFullyQualifiedClassName($discriminatorPropertyValue);
+<% } else { -%>
+        $type = $this->getFullyQualifiedClassName('<%= subscribeOperation.payload.name %>');
+<% } -%>
 
         $object = $this->serializer->deserialize($body, $type, 'json');
 
