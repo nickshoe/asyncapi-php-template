@@ -12,17 +12,19 @@ use <%= modelsNamespace %>\<%= usedClass %>;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use RuntimeException;
+<% if (subscribeOperation) { -%>
 use Rx\Observable;
 use Rx\Subject\Subject;
+<% } -%>
 
 class <%= channelClassNamePrefix %>Channel
 {
 
-<%# handles polymorphic message payloads -%>
-<% if (subscribeOperation && subscribeOperation.payload.discriminator !== null) { -%>
+<%# -%>
+<% if (subscribeOperation && subscribeOperation.payload.discriminator !== undefined) { -%>
     private const DISCRIMINATOR_PROPERTY_NAME = '<%= subscribeOperation.payload.discriminator %>';
 <% } -%>
-
+<%# -%>
     private const MODELS_NAMESPACE = '<%= modelsNamespace %>';
 
     private const DESTINATION_NAME = '<%= channelName %>';
@@ -59,6 +61,7 @@ class <%= channelClassNamePrefix %>Channel
 <% } -%>
 <% } -%>
     }
+<%# -%>
 <% if (publishOperation) { %>
     public function <%= publishOperation.name %>(<%= publishOperation.payload.name %> $<%= lowerCaseFirst(publishOperation.payload.name) %>): void
     {
@@ -76,6 +79,7 @@ class <%= channelClassNamePrefix %>Channel
         return $message;
     }
 <% } -%>
+<%# -%>
 <% if (subscribeOperation) { %>
     public function <%= subscribeOperation.name %>(): Observable
     {
@@ -95,6 +99,7 @@ class <%= channelClassNamePrefix %>Channel
         return $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->asObservable();
     }
 <% } -%>
+<%# -%>
 
     private function subscribeToDestination(): Subscription
     {
@@ -102,8 +107,8 @@ class <%= channelClassNamePrefix %>Channel
             $object = $this->extractObjectFromMessage($message);
 
             $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->onNext($object);
-<%# handles polymorphic message payloads -%>
-<% if (subscribeOperation.payload.discriminator !== null) { -%>
+<%# -%>
+<% if (subscribeOperation.payload.discriminator !== undefined) { %>
             $objectFullyQualifiedClassName = get_class($object);
             switch ($objectFullyQualifiedClassName) {
                 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
@@ -115,14 +120,15 @@ class <%= channelClassNamePrefix %>Channel
                     throw new RuntimeException("Unhandled object class '$objectFullyQualifiedClassName'.");
             }
 <% } -%>
+<%# -%>
         });
     }
 
     private function extractObjectFromMessage(Message $message): <%= subscribeOperation.payload.name %>
     {
         $body = $message->getBody();
-<%# handles polymorphic message payloads -%>
-<% if (subscribeOperation.payload.discriminator !== null) { -%>
+
+<% if (subscribeOperation.payload.discriminator !== undefined) { -%>
         $data = json_decode($body, true);
 
         if ($data == null) {
