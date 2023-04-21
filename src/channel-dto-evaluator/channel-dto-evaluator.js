@@ -128,7 +128,7 @@ export class ChannelDTOEvaluator {
      * @returns {string}
      */
     buildChannelClassNamePrefix(channelName) {
-        const nameTokens = channelName.replace(/\/|<|>|\-|\{|\}/g, " ").split(" ");
+        const nameTokens = channelName.replace(/\/|<|>|\-|\{|\}|\./g, " ").split(" ");
 
         const className = nameTokens.map((token) => token.charAt(0).toUpperCase() + token.slice(1)).join("");
 
@@ -163,6 +163,11 @@ export class ChannelDTO {
      * @type {string}
      */
     channelClassNamePrefix;
+
+    /**
+     * @type {object}
+     */
+    channelParameters;
 
     /**
      * @type {Payload}

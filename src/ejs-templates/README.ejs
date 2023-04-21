@@ -9,28 +9,12 @@
         }
     }
 
-    const channelClassInstanceName = lowerCaseFirst(channelDTO.channelClassNamePrefix) + 'Channel';
-
-    // TODO: refactor - synthesize a template data DTO using the following logic
-    let channelParameters = null;
-    if (channelDTO.channel.hasParameters()) {
-        channelParameters = {};
-        for (const parameterName in channelDTO.channel.parameters()) {
-            const parameter = channelDTO.channel.parameter(parameterName);
-            channelParameters[parameterName] = parameter.schema().examples().length > 0 ? parameter.schema().examples()[0] : 'parameter-value';
-        }
-    }
-
     let channelParameterArgumentsString = '';
-    if (channelParameters !== null) {
-        const channelParameterArguments = [];
-
-        for (let parameterName in channelParameters) {
-            channelParameterArguments.push(`'${parameterName}' => '${channelParameters[parameterName]}'`);
-        }
-
-        channelParameterArgumentsString = `[${channelParameterArguments.join(', ')}]`;
+    const channelParameterArguments = [];
+    for (let parameterName in channelDTO.channelParameters) {
+        channelParameterArguments.push(`'${parameterName}' => '${channelDTO.channelParameters[parameterName]}'`);
     }
+    channelParameterArgumentsString = `[${channelParameterArguments.join(', ')}]`;
     -%>
 ## Channel '<%= channelDTO.channelName %>' Example
 
@@ -79,17 +63,18 @@ $client = new AMQPClient($config);
 
 $client->connect();
 
-$<%= channelClassInstanceName %> = new <%= channelDTO.channelClassNamePrefix %>Channel($client<%- channelParameterArgumentsString !== '' ? `, ${channelParameterArgumentsString}` : '' %>);
+$channel = new <%= channelDTO.channelClassNamePrefix %>Channel($client<%- channelParameterArgumentsString !== '' ? `, ${channelParameterArgumentsString}` : '' %>);
 
+<%# TODO: add publish operation example -%>
 <% if (channelDTO.subscribeOperation) { -%>
-$<%= channelClassInstanceName %>-><%= channelDTO.subscribeOperation.name %>()->subscribe(
+$channel-><%= channelDTO.subscribeOperation.name %>()->subscribe(
     function (<%= channelDTO.subscribeOperation.payload.name %> <%= classInstanceVariableName(channelDTO.subscribeOperation.payload.name) %>) {
         echo "[x] Received <%= channelDTO.subscribeOperation.payload.name %> object:\n";
         print_r(<%= classInstanceVariableName(channelDTO.subscribeOperation.payload.name) %>);
     }
 );
 <% for (const subClass of channelDTO.subscribeOperation.payload.subClasses) { -%>
-$<%= channelClassInstanceName %>->on<%= subClass.name %>()->subscribe(
+$channel->on<%= subClass.name %>()->subscribe(
     function (<%= subClass.name %> <%= classInstanceVariableName(subClass.name) %>) {
         echo "[x] Received <%= subClass.name %> object:\n";
         print_r(<%= classInstanceVariableName(subClass.name) %>);
@@ -97,7 +82,7 @@ $<%= channelClassInstanceName %>->on<%= subClass.name %>()->subscribe(
 );
 <% } -%>
 
-$<%= channelClassInstanceName %>->listen();
+$channel->listen();
 <% } -%>
 ```
 

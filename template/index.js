@@ -25,6 +25,25 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
   const channelDTOEvaluator = new ChannelDTOEvaluator(classHierarchy, servicesNamespace, modelsNamespace);
   const channelDTOs = channelDTOEvaluator.evaluate(asyncapi);
 
+  // TODO: refactor - synthesize a template data DTO using the following logic
+  for (const channelDTO of channelDTOs) {
+    let channelParameters = {};
+    if (channelDTO.channel.hasParameters()) {
+      for (const parameterName in channelDTO.channel.parameters()) {
+        const parameter = channelDTO.channel.parameter(parameterName);
+
+        const parameterValue = '<parameter-value>';
+        if (parameter.schema().examples() !== undefined && parameter.schema().examples().length > 0) {
+          parameterValue = parameter.schema().examples()[0];
+        }
+
+        channelParameters[parameterName] = parameterValue;
+      }
+    }
+
+    channelDTO.channelParameters = channelParameters;
+  }
+
   const template = fs.readFileSync(
     __dirname + '/../src/ejs-templates/README.ejs',
     { encoding: 'utf8', flag: 'r' }
