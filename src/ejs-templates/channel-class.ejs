@@ -42,7 +42,7 @@ class <%= channelClassNamePrefix %>Channel
 <% } -%>
 <% } -%>
 
-    public function __construct(Client $client<%= channel.hasParameters() ? ', array $channelParameters' : '' %>)<%# TODO: pass channel parameters to observable methods and subscribe to the channel there %>
+    public function __construct(Client $client<%= channel.hasParameters() ? ', array $channelParameters' : '' %>)
     {
         if (!$client->isConnected()) {
             throw new RuntimeException('The message broker client must already be connected.');
@@ -90,7 +90,7 @@ class <%= channelClassNamePrefix %>Channel
         return $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->asObservable();
     }
 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
-    public function on<%= subscribeOperation.payload.subClasses[index].name %>(): Observable<%# TODO: create a new channel subscription (using channel params) for each observable method %>
+    public function on<%= subscribeOperation.payload.subClasses[index].name %>(): Observable
     {
         if ($this->subscription === null) {
             $this->subscription = $this->subscribeToDestination();
