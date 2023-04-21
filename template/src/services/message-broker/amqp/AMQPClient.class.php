@@ -70,7 +70,7 @@ class AMQPClient implements Client
             $queueName,
             '',
             false,
-            true,
+            true, // TODO: expose message acknowledgement in the API
             false,
             false,
             function (AMQPMessage $amqpMessage) use ($handler) {
