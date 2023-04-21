@@ -153,7 +153,7 @@ export class ChannelDTO {
      * @type {Channel}
      */
     channel;
-    
+
     /**
      * @type {string}
      */
