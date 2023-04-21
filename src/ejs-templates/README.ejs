@@ -9,12 +9,12 @@
         }
     }
 
-    let channelParameterArgumentsString = '';
     const channelParameterArguments = [];
     for (let parameterName in channelDTO.channelParameters) {
         channelParameterArguments.push(`'${parameterName}' => '${channelDTO.channelParameters[parameterName]}'`);
     }
-    channelParameterArgumentsString = `[${channelParameterArguments.join(', ')}]`;
+    
+    const channelParameterArgumentsString = channelParameterArguments.length > 0 ? `[${channelParameterArguments.join(', ')}]` : '';
     -%>
 ## Channel '<%= channelDTO.channelName %>' Example
 
