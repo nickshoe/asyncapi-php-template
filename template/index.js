@@ -32,7 +32,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
       for (const parameterName in channelDTO.channel.parameters()) {
         const parameter = channelDTO.channel.parameter(parameterName);
 
-        const parameterValue = '<parameter-value>';
+        let parameterValue = '<parameter-value>';
         if (parameter.schema().examples() !== undefined && parameter.schema().examples().length > 0) {
           parameterValue = parameter.schema().examples()[0];
         }
