@@ -2,14 +2,13 @@
 
 namespace <%= servicesNamespace %>\Channels;
 
-<% for (let usedClass of usedClasses) { -%>
-use <%= modelsNamespace %>\<%= usedClass %>;
-<% } -%>
-
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
-
+use AsyncAPI\Services\MessageBroker\Subscription;
+<% for (let usedClass of usedClasses) { -%>
+use <%= modelsNamespace %>\<%= usedClass %>;
+<% } -%>
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use RuntimeException;
@@ -19,9 +18,9 @@ use Rx\Subject\Subject;
 class <%= channelClassNamePrefix %>Channel
 {
 
-    <% if (subscribeOperation) { %>
+<% if (subscribeOperation) { -%>
     private const DISCRIMINATOR_PROPERTY_NAME = '<%= subscribeOperation.payload.discriminator %>';
-    <% } -%>
+<% } -%>
 
     private const MODELS_NAMESPACE = '<%= modelsNamespace %>';
 
@@ -29,58 +28,76 @@ class <%= channelClassNamePrefix %>Channel
 
     private Client $client;
     private Destination $destination;
+    private ?Subscription $subscription;
+
     private Serializer $serializer;
 
-    <% if (subscribeOperation) { %>
+<% if (subscribeOperation) { -%>
     private Subject $<%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject;
-    <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+<% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { -%>
     private Subject $<%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject;
-    public readonly Observable $<%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>;
-    <% } -%>
-    <% } -%>
+<% } -%>
+<% } -%>
 
-    public function __construct(Client $client)
+    public function __construct(Client $client<%= channel.hasParameters() ? ', array $channelParameters' : '' %>)<%# TODO: pass channel parameters to observable methods and subscribe to the channel there %>
     {
-
         if (!$client->isConnected()) {
             throw new RuntimeException('The message broker client must already be connected.');
         }
 
         $this->client = $client;
-
-        $this->destination = new Destination(self::DESTINATION_NAME);
+        $this->destination = new Destination(self::DESTINATION_NAME<%= channel.hasParameters() ? ', $channelParameters' : '' %>);
+        $this->subscription = null;
 
         $this->serializer = SerializerBuilder::create()->build();
 
-        <% if (subscribeOperation) { %>
+<% if (subscribeOperation) { -%>
         $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject = new Subject();
-        <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+<% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { -%>
         $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject = new Subject();
-        $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %> = $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->asObservable();
-        <% } -%>
-        <% } -%>
-
+<% } -%>
+<% } -%>
     }
-
-    <% if (publishOperation) { %>
+<% if (publishOperation) { %>
     public function <%= publishOperation.name %>(<%= publishOperation.payload.name %> $<%= lowerCaseFirst(publishOperation.payload.name) %>): void
     {
         $message = $this->buildMessageWithObject($<%= lowerCaseFirst(publishOperation.payload.name) %>);
 
         $this->client->publish($message, $this->destination);
     }
-    <% } -%>
 
-    <% if (subscribeOperation) { %>
+    private function buildMessageWithObject(object $object): Message
+    {
+        $jsonContent = $this->serializer->serialize($object, 'json');
+
+        $message = new Message('', $jsonContent);
+
+        return $message;
+    }
+<% } -%>
+<% if (subscribeOperation) { %>
     public function <%= subscribeOperation.name %>(): Observable
     {
+        if ($this->subscription === null) {
+            $this->subscription = $this->subscribeToDestination();
+        }
+
         return $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->asObservable();
     }
-    <% } -%>
-
-    public function listen(): void
+<% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+    public function on<%= subscribeOperation.payload.subClasses[index].name %>(): Observable<%# TODO: create a new channel subscription (using channel params) for each observable method %>
     {
-        $this->client->subscribe($this->destination, function (Message $message) {
+        if ($this->subscription === null) {
+            $this->subscription = $this->subscribeToDestination();
+        }
+
+        return $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->asObservable();
+    }
+<% } -%>
+
+    private function subscribeToDestination(): Subscription
+    {
+        return $this->client->subscribe($this->destination, function (Message $message) {
             $object = $this->extractObjectFromMessage($message);
 
             $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->onNext($object);
@@ -96,15 +113,6 @@ class <%= channelClassNamePrefix %>Channel
                     throw new RuntimeException("Unhandled object class '$objectFullyQualifiedClassName'.");
             }
         });
-    }
-
-    private function buildMessageWithObject(object $object): Message
-    {
-        $jsonContent = $this->serializer->serialize($object, 'json');
-
-        $message = new Message('', $jsonContent);
-
-        return $message;
     }
 
     private function extractObjectFromMessage(Message $message): <%= subscribeOperation.payload.name %>
@@ -140,5 +148,11 @@ class <%= channelClassNamePrefix %>Channel
     {
         return self::MODELS_NAMESPACE . '\\' . $className;
     }
+
+    public function listen(): void
+    {
+        $this->client->listen();
+    }
+<% } -%>
 
 }

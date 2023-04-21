@@ -50,6 +50,8 @@ channels:
         description: The id of the user.
         schema:
           type: string
+          examples:
+            - '123'
     subscribe:
       operationId: onUserNotification
       message:

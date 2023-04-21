@@ -11,7 +11,9 @@ interface Client
 
     function publish(Message $message, Destination $channel): void;
 
-    function subscribe(Destination $destination, Closure $handler): void;
+    function subscribe(Destination $destination, Closure $handler): Subscription;
+
+    function listen(): void;
 
     function disconnect(): void;
 

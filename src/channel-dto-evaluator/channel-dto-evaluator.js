@@ -139,11 +139,35 @@ export class ChannelDTOEvaluator {
 
 export class ChannelDTO {
 
+    /**
+     * @type {string}
+     */
     servicesNamespace;
-    channelName;
-    channelClassNamePrefix;
-    payload;
+
+    /**
+     * @type {string}
+     */
     modelsNamespace;
+
+    /**
+     * @type {Channel}
+     */
+    channel;
+    
+    /**
+     * @type {string}
+     */
+    channelName;
+
+    /**
+     * @type {string}
+     */
+    channelClassNamePrefix;
+
+    /**
+     * @type {Payload}
+     */
+    payload;
 
     /**
      * @type {PublishOperation|null}

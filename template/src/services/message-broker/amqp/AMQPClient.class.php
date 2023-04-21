@@ -5,6 +5,7 @@ namespace AsyncAPI\Services\MessageBroker\AMQP;
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
+use AsyncAPI\Services\MessageBroker\Subscription;
 use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -59,12 +60,14 @@ class AMQPClient implements Client
         $this->channel->basic_publish($amqpMessage, '', $destination->getName());
     }
 
-    public function subscribe(Destination $destination, Closure $handler): void
+    public function subscribe(Destination $destination, Closure $handler): Subscription
     {
         $this->handleOptionalQueueDeclaration($destination);
 
-        $this->channel->basic_consume(
-            $destination->getName(),
+        $queueName = $this->buildQueueName($destination);
+
+        $consumerTag = $this->channel->basic_consume(
+            $queueName,
             '',
             false,
             true,
@@ -77,6 +80,22 @@ class AMQPClient implements Client
             }
         );
 
+        return new Subscription($consumerTag, $destination);
+    }
+
+    private function buildQueueName(Destination $destination): string
+    {
+        $queueName = $destination->getName();
+
+        foreach ($destination->getParameters() as $parameterName => $parameterValue) {
+            $queueName = preg_replace("/\{$parameterName\}/", $parameterValue, $queueName);
+        }
+
+        return $queueName;
+    }
+
+    public function listen(): void
+    {
         while ($this->channel->is_open()) {
             $this->channel->wait();
         }
