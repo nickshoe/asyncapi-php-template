@@ -2,6 +2,7 @@ import { File, Text } from "@asyncapi/generator-react-sdk";
 import { render } from "ejs";
 import { ChannelDTO, ChannelDTOEvaluator } from "../../../../src/channel-dto-evaluator/channel-dto-evaluator";
 import { ClassHierarchyEvaluator } from "../../../../src/class-hierarchy-evaluator/class-hierrachy-evaluator";
+import { Utils } from "../../../../src/utils";
 
 const fs = require('fs');
 
@@ -49,7 +50,7 @@ function renderChannelClassFile(dto) {
     const output = render(template, {
         ...dto,
         usedClasses: usedClassesDeduped,
-        lowerCaseFirst: lowerCaseFirst
+        lowerCaseFirst: Utils.lowerCaseFirst
     });
 
     const fileName = `${dto.channelClassNamePrefix}Channel.class.php`;
@@ -61,12 +62,3 @@ function renderChannelClassFile(dto) {
     );
 }
 
-/**
- * TODO: refactor - duplicated function - create render utils class
- * 
- * @param {string} string 
- * @returns {string}
- */
-function lowerCaseFirst(string) {
-    return string.charAt(0).toLowerCase() + string.slice(1);
-}

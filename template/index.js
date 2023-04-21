@@ -2,8 +2,8 @@ import { File, Text } from "@asyncapi/generator-react-sdk";
 import { AsyncAPIDocument } from "@asyncapi/parser";
 import { render } from "ejs";
 import { ChannelDTOEvaluator } from "../src/channel-dto-evaluator/channel-dto-evaluator";
-import { Class } from "../src/class-hierarchy-evaluator/class";
 import { ClassHierarchyEvaluator } from "../src/class-hierarchy-evaluator/class-hierrachy-evaluator";
+import { Utils } from "../src/utils";
 
 const fs = require('fs');
 
@@ -71,8 +71,8 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     servicesNamespace: servicesNamespace,
     modelsNamespace: modelsNamespace,
     classHierarchy: classHierarchy,
-    upperCaseFirst: upperCaseFirst,
-    lowerCaseFirst: lowerCaseFirst,
+    upperCaseFirst: Utils.upperCaseFirst,
+    lowerCaseFirst: Utils.lowerCaseFirst,
     classInstanceVariableName: classInstanceVariableName,
     buildSchemaClassName: ClassHierarchyEvaluator.buildSchemaClassName
   });
@@ -121,28 +121,11 @@ class InputObject {
   originalAsyncAPI;
 }
 
-/**
- * 
- * @param {string} string 
- * @returns {string}
- */
-function upperCaseFirst(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-/**
- * 
- * @param {string} string 
- * @returns {string}
- */
-function lowerCaseFirst(string) {
-  return string.charAt(0).toLowerCase() + string.slice(1);
-}
 
 /** 
  * @param {string} className
  * @returns {string}
  */
 function classInstanceVariableName(className) {
-  return '$' + lowerCaseFirst(className);
+  return '$' + Utils.lowerCaseFirst(className);
 }

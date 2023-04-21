@@ -245,7 +245,7 @@ export class ClassHierarchyEvaluator {
    * @returns {Variable}
    */
   buildInstanceVariable(propertySchema, propertyName) {
-    const variableClass = this.determineVariableClass(propertySchema);
+    const variableClass = this.determineSchemaClass(propertySchema);
 
     return new InstanceVariable(
       propertyName,
@@ -257,92 +257,92 @@ export class ClassHierarchyEvaluator {
 
   /**
    * 
-   * @param {Schema} propertySchema 
+   * @param {Schema} schema 
    * @returns {Class}
    */
-  determineVariableClass(propertySchema) {
-    let variableClass;
+  determineSchemaClass(schema) {
+    let schemaClass;
 
-    const propertySchemaType = propertySchema.type();
-    switch (propertySchemaType) {
+    const schemaType = schema.type();
+    switch (schemaType) {
       case "object":
-        const propertySchemaClassName = ClassHierarchyEvaluator.buildSchemaClassName(propertySchema);
-        variableClass = this.classHierarchy.getClass(propertySchemaClassName);
+        const schemaClassName = ClassHierarchyEvaluator.buildSchemaClassName(schema);
+        schemaClass = this.classHierarchy.getClass(schemaClassName);
 
-        if (variableClass === null) {
-          variableClass = this.#setupSchemaClassIfNotPresent(propertySchema);
+        if (schemaClass === null) {
+          schemaClass = this.#setupSchemaClassIfNotPresent(schema);
         }
         break;
       case 'array':
-        variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.ARRAY_CLASS_NAME);
+        schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.ARRAY_CLASS_NAME);
 
-        const itemsSchema = propertySchema.items();
+        const itemsSchema = schema.items();
 
         if (Array.isArray(itemsSchema)) {
           throw new Error('Array of multiple types currently not supported');
         }
 
-        const typeVariableClass = this.determineVariableClass(itemsSchema);
+        const typeVariableClass = this.determineSchemaClass(itemsSchema);
         const typeVariable = new TypeVariable('T', typeVariableClass); // TODO: refactor
 
-        variableClass.addTypeVariable(typeVariable);
+        schemaClass.addTypeVariable(typeVariable);
         break;
       case "string":
-        if (propertySchema.format() === undefined) {
-          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+        if (schema.format() === undefined) {
+          schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
         } else {
-          switch (propertySchema.format()) {
+          switch (schema.format()) {
             case 'date':
             case 'date-time':
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
               break;
             default:
-              console.warn(`Treating unknown type '${propertySchemaType}' format '${propertySchema.format()}' as a generic string.`);
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+              console.warn(`Treating unknown type '${schemaType}' format '${schema.format()}' as a generic string.`);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
           }
         }
         break;
       case "integer":
-        if (propertySchema.format() === undefined) {
-          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+        if (schema.format() === undefined) {
+          schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
         } else {
-          switch (propertySchema.format()) {
+          switch (schema.format()) {
             case 'int32':
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
             case 'int64':
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.LONG_CLASS_NAME);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.LONG_CLASS_NAME);
               break;
             default:
-              console.warn(`Treating unknown type '${propertySchemaType}' format '${propertySchema.format()}' as an integer.`);
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
+              console.warn(`Treating unknown type '${schemaType}' format '${schema.format()}' as an integer.`);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INTEGER_CLASS_NAME);
           }
         }
         break;
       case "number":
-        if (propertySchema.format() === undefined) {
-          variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
+        if (schema.format() === undefined) {
+          schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
         } else {
-          switch (propertySchema.format()) {
+          switch (schema.format()) {
             case 'float':
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.FLOAT_CLASS_NAME);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.FLOAT_CLASS_NAME);
             case 'double':
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME);
               break;
             default:
-              console.warn(`Treating unknown type '${propertySchemaType}' format '${propertySchema.format()}' as a generic number.`);
-              variableClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
+              console.warn(`Treating unknown type '${schemaType}' format '${schema.format()}' as a generic number.`);
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
           }
         }
         break;
       default:
-        throw new Error(`Unhandled property type '${propertySchemaType}'`);
+        throw new Error(`Unhandled schema type '${schemaType}'.`);
     }
 
-    if (variableClass === null) {
-      throw new Error(`Could not find class for property '${propertySchema.uid()}' of type '${propertySchemaType}'`);
+    if (schemaClass === null) {
+      throw new Error(`Could not find class for schema '${schema.uid()}' of type '${schemaType}'.`);
     }
 
-    return variableClass;
+    return schemaClass;
   }
 
   /**
