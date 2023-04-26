@@ -16,7 +16,7 @@
     
     const channelParameterArgumentsString = channelParameterArguments.length > 0 ? `[${channelParameterArguments.join(', ')}]` : '';
     -%>
-## Channel '<%= channelDTO.channelName %>' Example
+## Channel `<%= channelDTO.channelName %>` example
 
 <%= channelDTO.channel.description() %>
 
@@ -78,11 +78,14 @@ $channel->listen();
 ```
 
 <% if (channelDTO.publishOperation) { -%>
+Try to publish one of the following message payloads on the `<%= channelDTO.channelName %>` channel:
+
 <% for (const subClass of channelDTO.publishOperation.payload.subClasses) { -%>
 `<%= subClass.name %>` example payload:
 ```json
 <%- JSON.stringify(classInstanceExamples.get(subClass.name), '', 4) %>
 ```
+
 <% } -%>
 <% } -%>
 
