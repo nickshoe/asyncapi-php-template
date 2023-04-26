@@ -56,6 +56,8 @@ VSCode launch configuration for debugging:
 
 The following content represents an example of a generated `README.md` file for your project, and demostrates how the generated code will look like, based on the [asyncapi-example.yml](./asyncapi-example.yml) example file.
 
+# Example App
+
 ## Channel `events` example
 
 This is the main channel where all application events are published.
