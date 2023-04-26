@@ -1,7 +1,14 @@
 import { Class } from "./class";
 
 export class ClassHierarchy {
+  /**
+   * @type {Class}
+   */
   #rootClass;
+  
+  /**
+   * @type {Map<string, Class>}
+   */
   #classes;
 
   /**
@@ -10,7 +17,7 @@ export class ClassHierarchy {
    */
   constructor(rootClass) {
     this.#rootClass = rootClass;
-    this.#classes = [];
+    this.#classes = new Map();
 
     this.addClass(rootClass);
   }
@@ -28,7 +35,7 @@ export class ClassHierarchy {
    * @returns {Class[]}
    */
   getClasses() {
-    return this.#classes;
+    return Array.from(this.#classes.values());
   }
 
   /**
@@ -36,27 +43,21 @@ export class ClassHierarchy {
    * @param {Class} aClass
    */
   addClass(aClass) {
-    if (this.getClass(aClass.getName()) === null) {
-      this.#classes.push(aClass);
+    if (this.#classes.get(aClass.getName()) === undefined) {
+      this.#classes.set(aClass.getName(), aClass);
     }
   }
 
   /**
    *
    * @param {string} className
-   * @returns {Class}
+   * @returns {Class|null}
    */
   getClass(className) {
-    const matchingClasses = this.getClasses().filter((currentClass) => currentClass.getName() === className);
-
-    if (matchingClasses.length > 1) {
-      throw new Error(`Found more than one class having the name ${className}.`);
+    if (this.#classes.get(className) === undefined) {
+      return null
     }
 
-    if (matchingClasses.length === 0) {
-      return null;
-    }
-
-    return matchingClasses[0];
+    return this.#classes.get(className);
   }
 }
