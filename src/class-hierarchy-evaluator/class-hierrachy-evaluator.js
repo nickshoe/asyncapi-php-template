@@ -283,7 +283,7 @@ export class ClassHierarchyEvaluator {
         }
 
         const typeVariableClass = this.determineSchemaClass(itemsSchema);
-        const typeVariable = new TypeVariable('T', typeVariableClass); // TODO: refactor
+        const typeVariable = new TypeVariable('T', typeVariableClass); // TODO: refactor + should handle multiple type variables?
 
         schemaClass.addTypeVariable(typeVariable);
         break;
