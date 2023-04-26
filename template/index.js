@@ -84,9 +84,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
 {
   "require": {
     "jms/serializer": "^3.23",
-    "php-amqplib/php-amqplib": "^3.5",
-    "react/event-loop": "^1.3",
-    "reactivex/rxphp": "^2.0"
+    "php-amqplib/php-amqplib": "^3.5"
   },
   "autoload": {
     "classmap": [
