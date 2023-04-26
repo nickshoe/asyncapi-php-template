@@ -2,20 +2,30 @@ export class Utils {
 
     /**
      * 
-     * @param {string} string 
+     * @param {string} str 
      * @returns {string}
      */
-    static lowerCaseFirst(string) {
-        return string.charAt(0).toLowerCase() + string.slice(1);
+    static lowerCaseFirst(str) {
+        return str.charAt(0).toLowerCase() + str.slice(1);
     }
 
     /**
      * 
-     * @param {string} string 
+     * @param {string} str 
      * @returns {string}
      */
-    static upperCaseFirst(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+    static upperCaseFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    /**
+     * https://stackoverflow.com/questions/54246477/how-to-convert-camelcase-to-snake-case
+     * 
+     * @param {string} str 
+     * @returns {string}
+     */
+    static camelToSnakeCase(str) {
+        return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     }
 
 }

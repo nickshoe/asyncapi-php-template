@@ -77,4 +77,13 @@ $channel->listen();
 <% } -%>
 ```
 
+<% if (channelDTO.publishOperation) { -%>
+<% for (const subClass of channelDTO.publishOperation.payload.subClasses) { -%>
+`<%= subClass.name %>` example payload:
+```json
+<%- JSON.stringify(classInstanceExamples.get(subClass.name), '', 4) %>
+```
+<% } -%>
+<% } -%>
+
 <% } %>

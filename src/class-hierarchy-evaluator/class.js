@@ -5,6 +5,10 @@ export const DEFAULT_PACKAGE_NAME = 'default';
 export class Class {
   #packageName;
   #name;
+
+  /**
+   * @type {Class|null}
+   */
   #superClass;
 
   /**
@@ -78,7 +82,7 @@ export class Class {
 
   /**
    *
-   * @returns {Class}
+   * @returns {Class|null}
    */
   getSuperClass() {
     return this.#superClass;
@@ -86,7 +90,7 @@ export class Class {
 
   /**
    *
-   * @param {Class} superClass
+   * @param {Class|null} superClass
    */
   setSuperClass(superClass) {
     this.#superClass = superClass;
@@ -105,7 +109,7 @@ export class Class {
    * @returns {boolean}
    */
   hasSubClasses() {
-    return this.#subClasses.size() > 0;
+    return this.#subClasses.size > 0;
   }
 
   /**
@@ -114,6 +118,18 @@ export class Class {
    */
   getInstanceVariables() {
     return Array.from(this.#instanceVariables.values());
+  }
+
+  /**
+   * 
+   * @returns {InstanceVariable[]}
+   */
+  getInheritedInstanceVariables() {
+    if (this.#superClass === null) {
+      return [];
+    }
+
+    return this.#superClass.getInstanceVariables().concat(this.#superClass.getInheritedInstanceVariables());
   }
 
   /**

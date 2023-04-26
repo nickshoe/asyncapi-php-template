@@ -217,7 +217,7 @@ export class Payload {
     name;
 
     /**
-     * @type {array}
+     * @type {PayloadSubClass[]}
      */
     subClasses;
 
@@ -225,4 +225,11 @@ export class Payload {
      * @type {string|null}
      */
     discriminator;
+}
+
+export class PayloadSubClass {
+    /**
+     * @type {string}
+     */
+    name;
 }
