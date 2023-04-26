@@ -98,7 +98,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
             const namespace = this.getNamespace(currentClass.getSuperClass());
 
             usesMap.set(`${namespace}\\${currentClass.getSuperClass().getName()}`, `use ${namespace}\\${currentClass.getSuperClass().getName()};`);
-            usesMap.set('JMS\\Serializer\\Annotation\\Discriminator', `use JMS\\Serializer\\Annotation\\Discriminator;`);
+            usesMap.set('JMS\\Serializer\\Annotation\\Discriminator', 'use JMS\\Serializer\\Annotation\\Discriminator;');
         }
 
         currentClass.getInstanceVariables()
@@ -110,6 +110,10 @@ export class PhpModelClassRenderer extends ClassRenderer {
 
                 usesMap.set(`${namespace}\\${type.getName()}`, `use ${namespace}\\${type.getName()};`);
             });
+
+        currentClass.getInstanceVariables()
+            .filter((instanceVariable) => instanceVariable.getType().getName() === ClassHierarchyEvaluator.INSTANT_CLASS_NAME)
+            .forEach(_ => usesMap.set('JMS\\Serializer\\Annotation\\Type', 'use JMS\\Serializer\\Annotation\\Type;'));
 
         const uses = Array.from(usesMap.values());
 
@@ -198,9 +202,23 @@ ${annotationsBlock}
                     .filter(component => component !== '')
                     .join(' ');
 
-                return `  ${declaration};`;
+                const annotation = this.#renderInstanceVariableAnnotationBlock(instanceVariable);
+
+                return `${annotation != '' ? annotation + '\n' : ''}  ${declaration};`;
             })
             .join(`\n`);
+    }
+
+    #renderInstanceVariableAnnotationBlock(instanceVariable) {
+        if (instanceVariable.getType().getName() === ClassHierarchyEvaluator.INSTANT_CLASS_NAME) {
+            return `
+  /**
+   * @Type("DateTime<'Y-m-d\\TH:i:s.uO'>")
+   */
+`.replace(/^\n/g, '').trimEnd();
+        }
+
+        return '';
     }
 
     /**
