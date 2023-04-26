@@ -6,9 +6,15 @@ export class Class {
   #packageName;
   #name;
   #superClass;
+
+  /**
+   * @type {Map<string, Class>}
+   */
   #subClasses;
 
-  // TODO: use a map
+  /**
+   * @type {Map<string, Variable>}
+   */
   #instanceVariables;
 
   /**
@@ -25,8 +31,8 @@ export class Class {
     this.#packageName = packageName;
     this.#name = name;
     this.#superClass = null;
-    this.#subClasses = [];
-    this.#instanceVariables = [];
+    this.#subClasses = new Map();
+    this.#instanceVariables = new Map();
     this.#typeVariables = new Map();
   }
 
@@ -91,7 +97,7 @@ export class Class {
    * @returns {Class[]}
    */
   getSubClasses() {
-    return this.#subClasses;
+    return Array.from(this.#subClasses.values());
   }
 
   /**
@@ -99,7 +105,7 @@ export class Class {
    * @returns {boolean}
    */
   hasSubClasses() {
-    return this.#subClasses.length > 0;    
+    return this.#subClasses.size() > 0;
   }
 
   /**
@@ -107,7 +113,7 @@ export class Class {
    * @returns {InstanceVariable[]}
    */
   getInstanceVariables() {
-    return this.#instanceVariables;
+    return Array.from(this.#instanceVariables.values());
   }
 
   /**
@@ -123,19 +129,11 @@ export class Class {
    * @param {Class} subClass
    */
   addSubClass(subClass) {
-    const matchingSubClasses = this.getSubClasses().filter(
-      (currentClass) => currentClass.getName() === subClass.getName()
-    );
-
-    if (matchingSubClasses.length > 1) {
-      throw new Error(`Found more than one sub class with name ${subClass.getName()}.`);
+    if (this.#subClasses.get(subClass.getName()) !== undefined) {
+      throw new Error(`There already exist a sub class named ${subClass.getName()}`);
     }
 
-    if (matchingSubClasses.length === 1) {
-      return;
-    }
-
-    this.#subClasses.push(subClass);
+    this.#subClasses.set(subClass.getName(), subClass);
   }
 
   /**
@@ -143,17 +141,11 @@ export class Class {
    * @param {InstanceVariable} instanceVariable
    */
   addInstanceVariable(instanceVariable) {
-    const matchingVariables = this.getInstanceVariables().filter((variable) => variable.getName() === instanceVariable.getName());
-
-    if (matchingVariables.length > 1) {
-      throw new Error(`Found more than one instance variable named ${instanceVariable.getName()}`);
-    }
-
-    if (matchingVariables.length === 1) {
+    if (this.#instanceVariables.get(instanceVariable.getName()) !== undefined) {
       throw new Error(`There already exist an instance variable named ${instanceVariable.getName()}`);
     }
 
-    this.#instanceVariables.push(instanceVariable);
+    this.#instanceVariables.set(instanceVariable.getName(), instanceVariable);
   }
 
   /**
