@@ -5,6 +5,7 @@ namespace AsyncAPI\Services\MessageBroker\AMQP;
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
+use AsyncAPI\Services\MessageBroker\MessageAckHandler;
 use AsyncAPI\Services\MessageBroker\Subscription;
 use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -70,11 +71,13 @@ class AMQPClient implements Client
             $queueName,
             '',
             false,
-            true, // TODO: expose message acknowledgement in the API
+            false,
             false,
             false,
             function (AMQPMessage $amqpMessage) use ($handler) {
-                $message = new Message('', $amqpMessage->getBody());
+                $message = new Message($amqpMessage->getDeliveryTag(), $amqpMessage->getBody());
+
+                $message->setAckHandler(new AMQPMessageAckHandler($amqpMessage));
 
                 call_user_func($handler, $message);
             }
@@ -143,4 +146,19 @@ class AMQPClient implements Client
         }
     }
 
+}
+
+class AMQPMessageAckHandler implements MessageAckHandler
+{
+    private AMQPMessage $amqpMessage;
+
+    public function __construct(AMQPMessage $amqpMessage)
+    {
+        $this->amqpMessage = $amqpMessage;
+    }
+
+    public function handleAck(): void
+    {
+        $this->amqpMessage->ack();
+    }
 }

@@ -25,26 +25,19 @@
 
 require_once(__DIR__ . '/vendor/autoload.php');
 
+<% if (channelDTO.subscribeOperation) { -%>
+use AsyncAPI\Services\MessageBroker\Message;
+<% } -%>
 <% if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) { -%>
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClientConfig;
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
 <% } -%>
-
-use React\EventLoop\Loop;
-use Rx\Scheduler;
 
 use <%= servicesNamespace %>\Channels\<%= channelDTO.channelClassNamePrefix %>Channel;
 
 <% for (let usedClass of usedClasses) { -%>
 use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
-
-$loop = Loop::get();
-
-// You only need to set the default scheduler once
-Scheduler::setDefaultFactory(function () use ($loop) {
-    return new Scheduler\EventLoopScheduler($loop);
-});
 
 <%
 if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) {
@@ -67,19 +60,17 @@ $channel = new <%= channelDTO.channelClassNamePrefix %>Channel($client<%- channe
 
 <%# TODO: add publish operation example -%>
 <% if (channelDTO.subscribeOperation) { -%>
-$channel-><%= channelDTO.subscribeOperation.name %>()->subscribe(
-    function (<%= channelDTO.subscribeOperation.payload.name %> <%= classInstanceVariableName(channelDTO.subscribeOperation.payload.name) %>) {
-        echo "[x] Received <%= channelDTO.subscribeOperation.payload.name %> object:\n";
-        print_r(<%= classInstanceVariableName(channelDTO.subscribeOperation.payload.name) %>);
-    }
-);
+$channel-><%= channelDTO.subscribeOperation.name %>(function (<%= channelDTO.subscribeOperation.payload.name %> $object, Message $message) {
+    echo "[x] Received <%= channelDTO.subscribeOperation.payload.name %> object:\n";
+    print_r($object);
+    $message->ack();
+});
 <% for (const subClass of channelDTO.subscribeOperation.payload.subClasses) { -%>
-$channel->on<%= subClass.name %>()->subscribe(
-    function (<%= subClass.name %> <%= classInstanceVariableName(subClass.name) %>) {
-        echo "[x] Received <%= subClass.name %> object:\n";
-        print_r(<%= classInstanceVariableName(subClass.name) %>);
-    }
-);
+$channel->on<%= subClass.name %>(function (<%= subClass.name %> $object, Message $message) {
+    echo "[x] Received <%= subClass.name %> object:\n";
+    print_r($object);
+    $message->ack();
+});
 <% } -%>
 
 $channel->listen();

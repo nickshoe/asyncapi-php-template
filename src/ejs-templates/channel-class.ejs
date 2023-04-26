@@ -6,16 +6,15 @@ use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
 use AsyncAPI\Services\MessageBroker\Subscription;
+<% if (subscribeOperation) { -%>
+use Closure;
+<% } -%>
 <% for (let usedClass of usedClasses) { -%>
 use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use RuntimeException;
-<% if (subscribeOperation) { -%>
-use Rx\Observable;
-use Rx\Subject\Subject;
-<% } -%>
 
 class <%= channelClassNamePrefix %>Channel
 {
@@ -36,9 +35,9 @@ class <%= channelClassNamePrefix %>Channel
     private Serializer $serializer;
 
 <% if (subscribeOperation) { -%>
-    private Subject $<%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject;
+    private Closure $<%= lowerCaseFirst(subscribeOperation.payload.name) %>Closure;
 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { -%>
-    private Subject $<%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject;
+    private Closure $<%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Closure;
 <% } -%>
 <% } -%>
 
@@ -55,9 +54,9 @@ class <%= channelClassNamePrefix %>Channel
         $this->serializer = SerializerBuilder::create()->build();
 
 <% if (subscribeOperation) { -%>
-        $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject = new Subject();
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Closure = function () { };
 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { -%>
-        $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject = new Subject();
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Closure = function () { };
 <% } -%>
 <% } -%>
     }
@@ -81,22 +80,14 @@ class <%= channelClassNamePrefix %>Channel
 <% } -%>
 <%# -%>
 <% if (subscribeOperation) { %>
-    public function <%= subscribeOperation.name %>(): Observable
+    public function <%= subscribeOperation.name %>(Closure $closure): void
     {
-        if ($this->subscription === null) {
-            $this->subscription = $this->subscribeToDestination();
-        }
-
-        return $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->asObservable();
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Closure = $closure;
     }
 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
-    public function on<%= subscribeOperation.payload.subClasses[index].name %>(): Observable
+    public function on<%= subscribeOperation.payload.subClasses[index].name %>(Closure $closure): void
     {
-        if ($this->subscription === null) {
-            $this->subscription = $this->subscribeToDestination();
-        }
-
-        return $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->asObservable();
+        $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Closure = $closure;
     }
 <% } -%>
 <%# -%>
@@ -106,14 +97,14 @@ class <%= channelClassNamePrefix %>Channel
         return $this->client->subscribe($this->destination, function (Message $message) {
             $object = $this->extractObjectFromMessage($message);
 
-            $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Subject->onNext($object);
+            ($this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Closure)($object, $message);
 <%# -%>
 <% if (subscribeOperation.payload.discriminator !== undefined) { %>
             $objectFullyQualifiedClassName = get_class($object);
             switch ($objectFullyQualifiedClassName) {
                 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
                 case <%= subscribeOperation.payload.subClasses[index].name %>::class:
-                    $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Subject->onNext($object);
+                    ($this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Closure)($object, $message);
                     break;
                 <% } %>
                 default:
@@ -164,6 +155,8 @@ class <%= channelClassNamePrefix %>Channel
 
     public function listen(): void
     {
+        $this->subscription = $this->subscribeToDestination();
+        
         $this->client->listen();
     }
 <% } -%>

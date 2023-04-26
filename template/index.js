@@ -73,7 +73,6 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     classHierarchy: classHierarchy,
     upperCaseFirst: Utils.upperCaseFirst,
     lowerCaseFirst: Utils.lowerCaseFirst,
-    classInstanceVariableName: classInstanceVariableName,
     buildSchemaClassName: ClassHierarchyEvaluator.buildSchemaClassName
   });
 
@@ -119,13 +118,4 @@ class InputObject {
    * @type { string }
    */
   originalAsyncAPI;
-}
-
-
-/** 
- * @param {string} className
- * @returns {string}
- */
-function classInstanceVariableName(className) {
-  return '$' + Utils.lowerCaseFirst(className);
 }
