@@ -1,6 +1,6 @@
 asyncapi: "2.6.0"
 
-id: "https://github.com/nickshoe/asyncapi-php-template/asyncapi-examle.yml"
+id: "https://github.com/nickshoe/asyncapi-php-template/"
 
 info:
   title: Example App
@@ -9,9 +9,11 @@ info:
     An example app to demonstrate the usage of asyncapi-php-template AsyncAPI generator template.
   contact:
     name: Nicolò Scarpa
+    url: https://github.com/nickshoe
     email: nicolo.scarpa@gmail.com
   license:
-    name: ISC
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 servers:
   development:

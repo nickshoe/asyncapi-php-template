@@ -1,6 +1,6 @@
 {
-  "name": "asyncapi-php-template",
-  "version": "0.1.0",
+  "name": "@nickshoe/asyncapi-php-template",
+  "version": "0.1.0-0",
   "description": "AsyncAPI generator template for PHP applications.",
   "main": "index.js",
   "scripts": {
@@ -46,5 +46,6 @@
     "@asyncapi/generator-react-sdk": "^0.2.25",
     "@faker-js/faker": "^7.6.0",
     "ejs": "^3.1.9"
-  }
+  },
+  "devDependencies": {}
 }
