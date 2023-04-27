@@ -1,5 +1,7 @@
 # asyncapi-php-template
 
+## Installation and usage
+
 Install the AsyncAPI CLI (i.e. the generator) (it can be installed as a dev dependency, or globally):
 
 ```shell
@@ -9,47 +11,13 @@ npm install --save-dev @asyncapi/cli
 Install this package as a project dev dependency:
 
 ```shell
-npm install --save-dev https://github.com/nickshoe/asyncapi-php-template
+npm install --save-dev @nickshoe/asyncapi-php-template
 ```
 
-Launch the generator, specifying `asyncapi-php-template` as the template name:
+Launch the generator, specifying `@nickshoe/asyncapi-php-template` as the template name:
 
 ```shell
-npx asyncapi generate fromTemplate <path-to-asyncapi-yaml> asyncapi-php-template -p server=<server-name> -o ./output
-```
-
-### Template Development
-
-VSCode launch configuration for debugging:
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug template",
-      "timeout": 10000,
-      "sourceMaps": true,
-      "args": [
-        "./asyncapi-example.yml",
-        "./",
-        "-o",
-        "./output",
-        "-p",
-        "server=development",
-        "-p",
-        "modelsNamespace=ExampleApp\\Models",
-        "-p",
-        "servicesNamespace=ExampleApp\\Services",
-        "--force-write",
-        "--debug"
-      ],
-      "program": "${workspaceFolder}/node_modules/@asyncapi/generator/cli.js"
-    }
-  ]
-}
+npx asyncapi generate fromTemplate <path-to-asyncapi-yaml> @nickshoe/asyncapi-php-template -p server=<server-name> -o ./output
 ```
 
 ## Example
@@ -143,9 +111,9 @@ class DomainEvent
 
 The following content represents an example of a generated `README.md` file for your project, and demostrates how the generated code will look like, based on the [asyncapi-example.yml](./asyncapi-example.yml) example file.
 
-# Example App
+### Example App
 
-## Channel `events` example
+#### Channel `events` example
 
 This is the main channel where all application events are published.
 
@@ -228,7 +196,7 @@ Try to publish one of the following message payloads on the `events` channel:
 ```
 
 
-## Channel `users/{userId}/notifications` example
+#### Channel `users/{userId}/notifications` example
 
 The channel on which notifications for a specific user are published.
 
@@ -268,3 +236,38 @@ $channel->onPasswordResetRequestedNotification(function (PasswordResetRequestedN
 
 $channel->listen();
 ```
+
+## Template Development
+
+VSCode launch configuration for debugging:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug template",
+      "timeout": 10000,
+      "sourceMaps": true,
+      "args": [
+        "./asyncapi-example.yml",
+        "./",
+        "-o",
+        "./output",
+        "-p",
+        "server=development",
+        "-p",
+        "modelsNamespace=ExampleApp\\Models",
+        "-p",
+        "servicesNamespace=ExampleApp\\Services",
+        "--force-write",
+        "--debug"
+      ],
+      "program": "${workspaceFolder}/node_modules/@asyncapi/generator/cli.js"
+    }
+  ]
+}
+```
+
