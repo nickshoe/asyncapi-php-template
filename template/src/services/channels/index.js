@@ -32,24 +32,8 @@ function renderChannelClassFile(dto) {
         { encoding: 'utf8', flag: 'r' }
     );
 
-    const usedClasses = [];
-    if (dto.publishOperation) {
-        usedClasses.push(dto.publishOperation.payload.name);
-        for (const subClass of dto.publishOperation.payload.subClasses) {
-            usedClasses.push(subClass.name);
-        }
-    }
-    if (dto.subscribeOperation) {
-        usedClasses.push(dto.subscribeOperation.payload.name);
-        for (const subClass of dto.subscribeOperation.payload.subClasses) {
-            usedClasses.push(subClass.name);
-        }
-    }
-    const usedClassesDeduped = [... new Set(usedClasses)];
-
     const output = render(template, {
         ...dto,
-        usedClasses: usedClassesDeduped,
         lowerCaseFirst: Utils.lowerCaseFirst
     });
 

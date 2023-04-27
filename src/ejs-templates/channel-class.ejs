@@ -9,7 +9,7 @@ use AsyncAPI\Services\MessageBroker\Subscription;
 <% if (subscribeOperation) { -%>
 use Closure;
 <% } -%>
-<% for (let usedClass of usedClasses) { -%>
+<% for (let usedClass of usedClasses.values()) { -%>
 use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
 use JMS\Serializer\Serializer;

@@ -1,21 +1,6 @@
 # <%= appTitle %>
 
-<% for (const channelDTO of channelDTOs) {
-    const usedClasses = [];
-    if (channelDTO.subscribeOperation) {
-        usedClasses.push(channelDTO.subscribeOperation.payload.name);
-        for (const subClass of channelDTO.subscribeOperation.payload.subClasses) {
-            usedClasses.push(subClass.name);
-        }
-    }
-
-    const channelParameterArguments = [];
-    for (let parameterName in channelDTO.channelParameters) {
-        channelParameterArguments.push(`'${parameterName}' => '${channelDTO.channelParameters[parameterName]}'`);
-    }
-    
-    const channelParameterArgumentsString = channelParameterArguments.length > 0 ? `[${channelParameterArguments.join(', ')}]` : '';
-    -%>
+<% for (const channelDTO of channelDTOs) { -%>
 ## Channel `<%= channelDTO.channelName %>` example
 
 <%= channelDTO.channel.description() %>
@@ -35,28 +20,37 @@ use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
 
 use <%= servicesNamespace %>\Channels\<%= channelDTO.channelClassNamePrefix %>Channel;
 
-<% for (let usedClass of usedClasses) { -%>
+<% if (channelDTO.subscribeOperation) { -%>
+<% for (let usedClass of channelDTO.subscribeOperation.usedClasses.values()) { -%>
 use <%= modelsNamespace %>\<%= usedClass %>;
+<% } -%>
 <% } -%>
 
 <%
-if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) {
-    for (const serverSecuritySchema of serverSecuritySchemes) {
-        if (serverSecuritySchema.type() === CONSTANTS.USER_PASSWORD_SECURITY_SCHEME_TYPE) {
+    if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) {
+        for (const serverSecuritySchema of serverSecuritySchemes) {
+            if (serverSecuritySchema.type() === CONSTANTS.USER_PASSWORD_SECURITY_SCHEME_TYPE) {
             -%>
 $username = 'user';
 $password = 'password';
 $config = new AMQPClientConfig('<%= server.url().split(':')[0] -%>', <%= server.url().split(':')[1] -%>, $username, $password);
 $client = new AMQPClient($config);
             <%
+            }
         }
-    }
-} 
+    } 
 -%>
 
 $client->connect();
 
-$channel = new <%= channelDTO.channelClassNamePrefix %>Channel($client<%- channelParameterArgumentsString !== '' ? `, ${channelParameterArgumentsString}` : '' %>);
+<%
+    const channelParametersArguments = [];
+    for (let parameterName in channelDTO.channelParameters) {
+        channelParametersArguments.push(`'${parameterName}' => '${channelDTO.channelParameters[parameterName]}'`);
+    }
+    const channelParametersArgumentsAsString = channelParametersArguments.length > 0 ? `[${channelParametersArguments.join(', ')}]` : '';
+-%>
+$channel = new <%= channelDTO.channelClassNamePrefix %>Channel($client<%- channelParametersArgumentsAsString !== '' ? `, ${channelParametersArgumentsAsString}` : '' %>);
 
 <%# TODO: add publish operation example -%>
 <% if (channelDTO.subscribeOperation) { -%>
@@ -77,13 +71,13 @@ $channel->listen();
 <% } -%>
 ```
 
-<% if (channelDTO.publishOperation) { -%>
+<% if (channelDTO.subscribeOperation) { -%>
 Try to publish one of the following message payloads on the `<%= channelDTO.channelName %>` channel:
 
-<% for (const subClass of channelDTO.publishOperation.payload.subClasses) { -%>
+<% for (const subClass of channelDTO.subscribeOperation.payload.subClasses) { -%>
 `<%= subClass.name %>` example payload:
 ```json
-<%- JSON.stringify(classInstanceExamples.get(subClass.name), '', 4) %>
+<%- JSON.stringify(channelDTO.classInstanceExamples.get(subClass.name), '', 4) %>
 ```
 
 <% } -%>
