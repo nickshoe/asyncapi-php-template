@@ -117,7 +117,7 @@ export class ChannelDTOEvaluator {
             };
         }
 
-        let channelParameters = {};
+        const channelParameters = {};
         if (channel.hasParameters()) {
             for (const parameterName in channel.parameters()) {
                 const parameter = channel.parameter(parameterName);
@@ -132,7 +132,7 @@ export class ChannelDTOEvaluator {
         }
 
 
-        let usedClasses = new Map();
+        const usedClasses = new Map();
         if (subscribeOperation !== null) {
             subscribeOperation.usedClasses.forEach(usedClass => usedClasses.set(usedClass, usedClass));
         }
