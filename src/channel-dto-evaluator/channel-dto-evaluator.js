@@ -198,22 +198,23 @@ export class ChannelDTOEvaluator {
 
     /**
      * 
-     * @param {Class} clazz 
+     * @param {Class} theClass 
      * @returns {object}
      */
-    #buildExampleInstance(clazz) {
+    #buildExampleInstance(theClass) {
         const exampleInstance = {};
 
-        for (const instanceVariable of clazz.getInheritedInstanceVariables().concat(clazz.getInstanceVariables())) {
+        for (const instanceVariable of theClass.getInheritedInstanceVariables().concat(theClass.getInstanceVariables())) {
             let propertyValue = undefined;
 
             if (instanceVariable.isDiscriminator()) {
-                propertyValue = clazz.getName();
+                propertyValue = theClass.getName();
             } else {
                 propertyValue = this.#generateExampleValue(instanceVariable);
             }
 
             const propertyName = Utils.camelToSnakeCase(instanceVariable.getName()); // TODO: refactor - this is a view (i.e. target language dependenant) concern
+
             exampleInstance[propertyName] = propertyValue;
         }
 
@@ -226,47 +227,110 @@ export class ChannelDTOEvaluator {
      * @returns {any}
      */
     #generateExampleValue(instanceVariable) {
-        // TODO - refactor: use strategy pattern, construct an instance value from the characteristics of the instance variable
-
         if (instanceVariable.isDiscriminator()) {
             throw new Error('Example value for discriminator instance variable should already be handled at a higher level.');
-        } else {
-            if (instanceVariable.getType().isUserDefinedClass()) {
-                return this.#buildExampleInstance(instanceVariable.getType());
-            } else {
-                switch (instanceVariable.getType().getName()) {
-                    case ClassHierarchyEvaluator.INTEGER_CLASS_NAME:
-                        switch (instanceVariable.getName()) {
-                            case 'id':
-                                return faker.datatype.number(100);
-                            default:
-                                return faker.datatype.number();
-                        }
-                    case ClassHierarchyEvaluator.STRING_CLASS_NAME:
-                        switch (instanceVariable.getName()) {
-                            case 'id':
-                                return faker.datatype.uuid();
-                            case 'email':
-                                return faker.internet.email(); // TODO: use firstName and lastName if available
-                            case 'user':
-                            case 'username':
-                                return faker.internet.userName();
-                            case 'firstName':
-                                return faker.name.firstName();
-                            case 'lastName':
-                                return faker.name.lastName();
-                            default:
-                                return faker.datatype.string();
-                        }
-                    case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
-                        return faker.datatype.datetime();
-                    default:
-                        return faker.datatype.string();
-                }
-            }
+        }
+
+        if (instanceVariable.getType().isUserDefinedClass()) {
+            return this.#buildExampleInstance(instanceVariable.getType());
+        }
+
+        switch (instanceVariable.getType().getName()) {
+            case ClassHierarchyEvaluator.INTEGER_CLASS_NAME:
+                return GeneratorFactory.NUMBER_GENERATOR().apply(instanceVariable.getName());
+            case ClassHierarchyEvaluator.STRING_CLASS_NAME:
+                return GeneratorFactory.STRING_GENERATOR().apply(instanceVariable.getName());
+            case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
+                return faker.datatype.datetime();
+            default:
+                return faker.datatype.string();
         }
     }
 
+}
+
+class TypedExampleGenerator {
+
+    /**
+     * @type {Map<RegExp, Function>}
+     */
+    #strategies;
+
+    /**
+     * @type {Function|null}
+     */
+    #fallbackStrategy;
+
+    /**
+     * @param {Map<RegExp, Function>} strategies
+     * @param {Function|null} fallbackStrategy
+     */
+    constructor(strategies, fallbackStrategy = null) {
+        this.#strategies = strategies;
+        this.#fallbackStrategy = fallbackStrategy;
+    }
+
+    /**
+     * 
+     * @param {string} input 
+     * @returns {any}
+     */
+    apply(input) {
+        if (this.#strategies.size === 0) {
+            throw new Error('No strategies available');
+        }
+
+        for (const [regExp, generator] of this.#strategies.entries()) {
+            if (regExp.test(input)) {
+                return generator();
+            }
+        }
+
+        if (this.#fallbackStrategy === null) {
+            throw new Error(`No strategy could be applied for '${input}'`);
+        }
+
+        return this.#fallbackStrategy();
+    }
+}
+
+class GeneratorFactory {
+
+    /**
+     * @type {TypedExampleGenerator|null}
+     */
+    static #numberGenerator = null;
+    /**
+     * @type {TypedExampleGenerator|null}
+     */
+    static #stringGenerator = null;
+
+    static NUMBER_GENERATOR() {
+        if (this.#numberGenerator === null) {
+            const strategies = new Map();
+            strategies.set(/id/i, () => faker.datatype.number({ min: 1, max: 100, precision: 1 }));
+
+            this.#numberGenerator = new TypedExampleGenerator(strategies, faker.datatype.number);
+        }
+
+        return this.#numberGenerator;
+    }
+
+    static STRING_GENERATOR() {
+        if (this.#stringGenerator === null) {
+            const strategies = new Map();
+            strategies.set(/id/i, faker.datatype.uuid);
+            strategies.set(/email/i, faker.internet.email);// TODO: use firstName and lastName if available
+            strategies.set(/user(name)?/i, faker.internet.userName);
+            strategies.set(/[a-z|A-Z]*password/i, faker.internet.password);
+            strategies.set(/firstname/i, faker.name.firstName);
+            strategies.set(/lastname/i, faker.name.lastName);
+
+            this.#stringGenerator = new TypedExampleGenerator(strategies, faker.datatype.string);
+        }
+
+        return this.#stringGenerator;
+    }
 }
 
 export class ChannelDTO {
