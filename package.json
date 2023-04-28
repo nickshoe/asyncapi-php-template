@@ -11,7 +11,10 @@
     "url": "git+https://github.com/nickshoe/asyncapi-php-template.git"
   },
   "keywords": [
-    "asyncapi"
+    "asyncapi",
+    "php",
+    "generator",
+    "template"
   ],
   "author": "Nicolò Scarpa <nicolo.scarpa@gmail.com> (https://github.com/nickshoe)",
   "license": "Apache-2.0",

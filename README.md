@@ -1,11 +1,17 @@
 # asyncapi-php-template
 
+An [AsyncAPI generator](https://www.asyncapi.com/tools/generator) template for scaffolding publisher/subscriber (or producer/consumer, or wathever) PHP applications, with a focus on type safety and polymorphism.
+
+Currently supported message brokers:
+- [x] RabbitMQ
+- [x] Kafka
+
 ## Installation and usage
 
 Install the AsyncAPI CLI (i.e. the generator) (it can be installed as a dev dependency, or globally):
 
 ```shell
-npm install --save-dev @asyncapi/cli
+npm install --save-dev @asyncapi/generator
 ```
 
 Install this package as a project dev dependency:
@@ -17,7 +23,7 @@ npm install --save-dev @nickshoe/asyncapi-php-template
 Launch the generator, specifying `@nickshoe/asyncapi-php-template` as the template name:
 
 ```shell
-npx asyncapi generate fromTemplate <path-to-asyncapi-yaml> @nickshoe/asyncapi-php-template -p server=<server-name> -o ./output
+npx ag <path-to-asyncapi-yaml> @nickshoe/asyncapi-php-template -p server=<server-name> -o ./output
 ```
 
 ## Example
