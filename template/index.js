@@ -70,7 +70,8 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
 {
   "require": {
     "jms/serializer": "^3.23",
-    "php-amqplib/php-amqplib": "^3.5"
+    "php-amqplib/php-amqplib": "^3.5",
+    "ramsey/uuid": "^4.7"
   },
   "autoload": {
     "classmap": [

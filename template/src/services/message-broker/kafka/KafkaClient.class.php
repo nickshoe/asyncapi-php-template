@@ -12,64 +12,126 @@ use RuntimeException;
 
 class KafkaClient implements Client
 {
+    private const PRODUCE_TIMEOUT_MS = 10 * 1000;
     private const CONSUME_TIMEOUT_MS = 120 * 1000;
 
     private KafkaClientConfig $config;
 
-    private \RdKafka\Conf $rdKafkaConf;
-    private \RdKafka\KafkaConsumer $rdKafkaConsumer;
+    private \RdKafka\Conf $rdKafkaConsumerConf;
+    private \RdKafka\Conf $rdKafkaProducerConf;
+    private ?\RdKafka\Producer $rdKafkaProducer;
+    private ?\RdKafka\KafkaConsumer $rdKafkaConsumer;
 
     private Closure $handler;
 
+    private $connected = false;
     private $debug = false;
 
     public function __construct(KafkaClientConfig $config)
     {
         $this->config = $config;
+
+        $this->rdKafkaProducer = null;
+        $this->rdKafkaConsumer = null;
     }
 
     public function connect(): void
     {
-        $this->rdKafkaConf = new \RdKafka\Conf();
+        if ($this->isConnected()) {
+            throw new RuntimeException("Already connected.");
+        }
 
-        //$this->rdKafkaConf->set('log_level', (string) LOG_DEBUG); // TODO: expose
+        $this->connected = true;
+    }
 
-        //$this->rdKafkaConf->set('debug', 'all'); // TODO: expose
+    public function publish(Message $message, Destination $destination): void
+    {
+        if ($this->rdKafkaProducer !== null) { // TODO: handle multiple producer with a single client
+            throw new RuntimeException("The publish method have been already invoked before.");
+        }
 
-        // Configure the group.id. All consumer with the same group.id will consume
-        // different partitions.
-        $this->rdKafkaConf->set('group.id', $this->config->getConsumerGroupId());
+        $this->rdKafkaProducerConf = $this->buildRdKafkaProducerConf($this->config);
+
+        $this->rdKafkaProducer = new \RdKafka\Producer($this->rdKafkaProducerConf);
+
+        $topicName = $this->builTopicName($destination); // TODO: use a map to track producers by topic name
+        $topic = $this->rdKafkaProducer->newTopic($topicName);
+
+        $topic->produce(RD_KAFKA_PARTITION_UA, 0, $message->getBody(), $message->getId() !== '' ? $message->getId() : null);
+        
+        // For non-blocking calls, provide 0 as \p timeout_ms. (https://github.com/confluentinc/librdkafka/blob/master/src/rdkafka.h)
+        $this->rdKafkaProducer->poll(0);
+    }
+
+    private function buildRdKafkaProducerConf(KafkaClientConfig $config): \RdKafka\Conf
+    {
+        $rdKafkaConsumerConf = new \RdKafka\Conf();
+
+        //$rdKafkaConsumerConf->set('log_level', (string) LOG_DEBUG); // TODO: expose
+
+        //$rdKafkaConsumerConf->set('debug', 'all'); // TODO: expose
 
         $brokers = explode(',', $this->config->getBrokers());
         $brokersHosts = array_map(fn($broker) => explode(':', $broker)[0], $brokers);
         $brokersList = implode(',', $brokersHosts);
         // Initial list of Kafka brokers
-        $this->rdKafkaConf->set('metadata.broker.list', $brokersList);
+        $rdKafkaConsumerConf->set('metadata.broker.list', $brokersList);
 
-        // Set where to start consuming messages when there is no initial offset in
-        // offset store or the desired offset is out of range.
-        // 'earliest': start from the beginning
-        $this->rdKafkaConf->set('auto.offset.reset', 'earliest'); // TODO: expose
-
-        // Emit EOF event when reaching the end of a partition
-        $this->rdKafkaConf->set('enable.partition.eof', 'true'); // TODO: expose
-    }
-
-    public function publish(Message $message, Destination $destination): void
-    {
-
+        return $rdKafkaConsumerConf;
     }
 
     public function subscribe(Destination $destination, Closure $handler): Subscription
     {
-        $this->handler = $handler;
+        if ($this->rdKafkaConsumer !== null) { // TODO: handle multiple subscription with a single client
+            throw new RuntimeException("The subscribe method have been already invoked before.");
+        }
 
-        $this->rdKafkaConsumer = new \RdKafka\KafkaConsumer($this->rdKafkaConf);
+        $this->rdKafkaConsumerConf = $this->buildRdKafkaConsumerConf($this->config);
+
+        $this->rdKafkaConsumer = new \RdKafka\KafkaConsumer($this->rdKafkaConsumerConf);
+
+        $this->handler = $handler; // TODO: use a map to track subscription handler by topic name (i.e. rdKafkaConsumer->getSubscription() value)
 
         $topicName = $this->builTopicName($destination);
         $this->rdKafkaConsumer->subscribe([$topicName]);
 
-        return new Subscription(0, $destination); // TODO: generate or retrieve a subscription id?
+        $subscriptions = $this->rdKafkaConsumer->getSubscription();
+        $subscriptionId = array_search($topicName, $subscriptions);
+
+        if ($subscriptionId === false) {
+            throw new RuntimeException("Something went wrong while subscribing to topic $topicName.");
+        }
+
+        return new Subscription($subscriptionId, $destination);
+    }
+
+    private function buildRdKafkaConsumerConf(KafkaClientConfig $config): \RdKafka\Conf
+    {
+        $rdKafkaConsumerConf = new \RdKafka\Conf();
+
+        //$rdKafkaConsumerConf->set('log_level', (string) LOG_DEBUG); // TODO: expose
+
+        //$rdKafkaConsumerConf->set('debug', 'all'); // TODO: expose
+
+        // Configure the group.id. All consumer with the same group.id will consume
+        // different partitions.
+        $rdKafkaConsumerConf->set('group.id', $config->getConsumerGroupId());
+
+        $brokers = explode(',', $this->config->getBrokers());
+        $brokersHosts = array_map(fn($broker) => explode(':', $broker)[0], $brokers);
+        $brokersList = implode(',', $brokersHosts);
+        // Initial list of Kafka brokers
+        $rdKafkaConsumerConf->set('metadata.broker.list', $brokersList);
+
+        // Set where to start consuming messages when there is no initial offset in
+        // offset store or the desired offset is out of range.
+        // 'earliest': start from the beginning
+        $rdKafkaConsumerConf->set('auto.offset.reset', 'earliest'); // TODO: expose
+
+        // Emit EOF event when reaching the end of a partition
+        $rdKafkaConsumerConf->set('enable.partition.eof', 'true'); // TODO: expose
+
+        return $rdKafkaConsumerConf;
     }
 
     private function builTopicName(Destination $destination): string
@@ -114,12 +176,34 @@ class KafkaClient implements Client
 
     public function disconnect(): void
     {
+        if (!$this->isConnected()) {
+            throw new RuntimeException("Not connected.");
+        }
 
+        if ($this->rdKafkaProducer !== null) {
+            for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
+                $result = $this->rdKafkaProducer->flush(self::PRODUCE_TIMEOUT_MS);
+                if (RD_KAFKA_RESP_ERR_NO_ERROR === $result) {
+                    break;
+                }
+            }
+            
+            if (RD_KAFKA_RESP_ERR_NO_ERROR !== $result) {
+                throw new RuntimeException('Was unable to flush, messages might be lost!');
+            }
+        }
+
+        if ($this->rdKafkaConsumer !== null) {
+            $this->rdKafkaConsumer->unsubscribe();
+            $this->rdKafkaConsumer->close();
+        }
+
+        $this->connected = false;
     }
 
     public function isConnected(): bool
     {
-        return true;
+        return $this->connected;
     }
 
     private function log(string $message): void

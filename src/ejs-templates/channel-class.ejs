@@ -14,6 +14,9 @@ use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
+<% if (publishOperation) { -%>
+use Ramsey\Uuid\Uuid;
+<% } -%>
 use RuntimeException;
 
 class <%= channelClassNamePrefix %>Channel
@@ -71,9 +74,10 @@ class <%= channelClassNamePrefix %>Channel
 
     private function buildMessageWithObject(object $object): Message
     {
-        $jsonContent = $this->serializer->serialize($object, 'json');
+        $messageId = Uuid::uuid4();
+        $messageBody = $this->serializer->serialize($object, 'json');
 
-        $message = new Message('', $jsonContent);
+        $message = new Message($messageId, $messageBody);
 
         return $message;
     }
