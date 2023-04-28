@@ -3,8 +3,8 @@
 An [AsyncAPI Generator](https://www.asyncapi.com/tools/generator) template for scaffolding publisher/subscriber (or producer/consumer, or wathever) PHP applications, with a focus on type safety and polymorphism.
 
 Currently supported message brokers:
-✅ RabbitMQ
-✅ Kafka
+- ✅ RabbitMQ
+- ✅ Kafka
 
 ## Installation and usage
 
