@@ -30,18 +30,23 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     { encoding: 'utf8', flag: 'r' }
   );
 
-  const securitySchemes = asyncapi.components().securitySchemes();
+  let serverSecuritySchemes = [];
+  if (server.security() !== null && server.security().length > 0) {
+    const securitySchemes = asyncapi.components().securitySchemes();
 
-  const securitySchemesIds = Object.keys(securitySchemes);
+    const securitySchemesIds = Object.keys(securitySchemes);
 
-  const serverSecuritySchemes = securitySchemesIds
-    .filter((securitySchemaId) => typeof server.security()[0].json(securitySchemaId) !== undefined)
-    .map((securitySchemaId) => securitySchemes[securitySchemaId]);
+    serverSecuritySchemes = securitySchemesIds
+      .filter((securitySchemaId) => typeof server.security()[0].json(securitySchemaId) !== undefined) // TODO: refactor
+      .map((securitySchemaId) => securitySchemes[securitySchemaId]);
+  }
 
   const output = render(template, {
     CONSTANTS: {
       AMQP_PROTOCOL: 'amqp',
       AMQP_PROTOCOL_VERSION: '0.9.1',
+      KAFKA_PROTOCOL: 'kafka',
+      KAFKA_PROTOCOL_VERSION: '1.0.0',
       USER_PASSWORD_SECURITY_SCHEME_TYPE: 'userPassword'
     },
     server: server,
@@ -60,6 +65,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     <Text>{output}</Text>
   </File>;
 
+  // TODO: generate composer block dynamically
   const composerBlock = `
 {
   "require": {
@@ -70,6 +76,9 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     "classmap": [
         "src/"
     ]
+  },
+  "require-dev": {
+    "kwn/php-rdkafka-stubs": "^2.2"
   }
 }  
 `.trim();

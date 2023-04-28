@@ -16,13 +16,16 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 servers:
-  development:
+  rabbitmq-development:
     url: localhost:5672
     protocol: amqp
-    protocolVersion: 0.9.1
-    description: Development server
+    protocolVersion: '0.9.1'
     security:
       - user-password: []
+  kafka-development:
+    url: localhost:9092
+    protocol: kafka
+    protocolVersion: '1.0.0'
 
 defaultContentType: application/json
 

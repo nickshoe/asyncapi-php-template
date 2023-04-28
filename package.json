@@ -22,7 +22,8 @@
   "generator": {
     "renderer": "react",
     "supportedProtocols": [
-      "amqp"
+      "amqp",
+      "kafka"
     ],
     "parameters": {
       "modelsNamespace": {

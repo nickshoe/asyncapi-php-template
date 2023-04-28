@@ -17,6 +17,10 @@ use AsyncAPI\Services\MessageBroker\Message;
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClientConfig;
 use AsyncAPI\Services\MessageBroker\AMQP\AMQPClient;
 <% } -%>
+<% if (server.protocol() === CONSTANTS.KAFKA_PROTOCOL && server.protocolVersion() === CONSTANTS.KAFKA_PROTOCOL_VERSION) { -%>
+use AsyncAPI\Services\MessageBroker\Kafka\KafkaClientConfig;
+use AsyncAPI\Services\MessageBroker\Kafka\KafkaClient;
+<% } -%>
 
 use <%= servicesNamespace %>\Channels\<%= channelDTO.channelClassNamePrefix %>Channel;
 
@@ -27,18 +31,25 @@ use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
 
 <%
-    if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) {
-        for (const serverSecuritySchema of serverSecuritySchemes) {
-            if (serverSecuritySchema.type() === CONSTANTS.USER_PASSWORD_SECURITY_SCHEME_TYPE) {
+// TODO: refactor - use strategy pattern and factor-out the rendering part
+if (server.protocol() === CONSTANTS.AMQP_PROTOCOL && server.protocolVersion() === CONSTANTS.AMQP_PROTOCOL_VERSION) {
+    for (const serverSecuritySchema of serverSecuritySchemes) {
+        if (serverSecuritySchema.type() === CONSTANTS.USER_PASSWORD_SECURITY_SCHEME_TYPE) {
             -%>
 $username = 'user';
 $password = 'password';
 $config = new AMQPClientConfig('<%= server.url().split(':')[0] -%>', <%= server.url().split(':')[1] -%>, $username, $password);
 $client = new AMQPClient($config);
             <%
-            }
         }
-    } 
+    }
+}
+if (server.protocol() === CONSTANTS.KAFKA_PROTOCOL && server.protocolVersion() === CONSTANTS.KAFKA_PROTOCOL_VERSION) {
+    -%>
+$config = new KafkaClientConfig('<%= server.url() -%>', 'myConsumerGroup');
+$client = new KafkaClient($config);
+    <%
+}
 -%>
 
 $client->connect();
