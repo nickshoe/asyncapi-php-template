@@ -10,7 +10,7 @@ class KafkaClientConfig extends ClientConfig
     public const BROKERS = 'brokers';
     public const CONSUMER_GROUP_ID = 'consumer.group.id';
 
-    public function __construct(string $brokers, string $consumerGroupId)
+    public function __construct(string $brokers, ?string $consumerGroupId = null)
     {
         parent::__construct(
             array(
@@ -25,7 +25,7 @@ class KafkaClientConfig extends ClientConfig
         return $this->get(self::BROKERS);
     }
 
-    public function getConsumerGroupId(): string
+    public function getConsumerGroupId(): ?string
     {
         return $this->get(self::CONSUMER_GROUP_ID);
     }
