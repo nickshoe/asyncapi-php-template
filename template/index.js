@@ -1,11 +1,6 @@
-import { File, Text } from "@asyncapi/generator-react-sdk";
 import { AsyncAPIDocument } from "@asyncapi/parser";
-import { render } from "ejs";
-import { ChannelDTOEvaluator } from "../src/channel-dto-evaluator/channel-dto-evaluator";
-import { ClassHierarchyEvaluator } from "../src/class-hierarchy-evaluator/class-hierrachy-evaluator";
-import { Utils } from "../src/utils";
-
-const fs = require('fs');
+import { ComposerFileRenderer } from "../src/composer-file-renderer";
+import { ReadmeFileRenderer } from "../src/readme-file-renderer";
 
 /**
  * 
@@ -13,80 +8,11 @@ const fs = require('fs');
  * @returns 
  */
 export default function ({ asyncapi, params, originalAsyncAPI }) {
-  const serverName = params.server;
-  const modelsNamespace = params.modelsNamespace;
-  const servicesNamespace = params.servicesNamespace;
+  const readmeFileRenderer = new ReadmeFileRenderer();
+  const readmeFile = readmeFileRenderer.render(asyncapi, params);
 
-  const server = asyncapi.server(serverName);
-
-  const classHierarchyEvaluator = new ClassHierarchyEvaluator(asyncapi, modelsNamespace);
-  const classHierarchy = classHierarchyEvaluator.evaluate();
-
-  const channelDTOEvaluator = new ChannelDTOEvaluator(classHierarchy, servicesNamespace, modelsNamespace);
-  const channelDTOs = channelDTOEvaluator.evaluate(asyncapi);
-
-  const template = fs.readFileSync(
-    __dirname + '/../src/ejs-templates/README.ejs',
-    { encoding: 'utf8', flag: 'r' }
-  );
-
-  let serverSecuritySchemes = [];
-  if (server.security() !== null && server.security().length > 0) {
-    const securitySchemes = asyncapi.components().securitySchemes();
-
-    const securitySchemesIds = Object.keys(securitySchemes);
-
-    serverSecuritySchemes = securitySchemesIds
-      .filter((securitySchemaId) => typeof server.security()[0].json(securitySchemaId) !== undefined) // TODO: refactor
-      .map((securitySchemaId) => securitySchemes[securitySchemaId]);
-  }
-
-  const output = render(template, {
-    CONSTANTS: {
-      AMQP_PROTOCOL: 'amqp',
-      AMQP_PROTOCOL_VERSION: '0.9.1',
-      KAFKA_PROTOCOL: 'kafka',
-      KAFKA_PROTOCOL_VERSION: '1.0.0',
-      USER_PASSWORD_SECURITY_SCHEME_TYPE: 'userPassword'
-    },
-    server: server,
-    serverSecuritySchemes: serverSecuritySchemes,
-    appTitle: asyncapi.info().title(),
-    channelDTOs: channelDTOs,
-    channels: asyncapi.channels(),
-    servicesNamespace: servicesNamespace,
-    modelsNamespace: modelsNamespace,
-    upperCaseFirst: Utils.upperCaseFirst,
-    lowerCaseFirst: Utils.lowerCaseFirst,
-    buildSchemaClassName: ClassHierarchyEvaluator.buildSchemaClassName
-  });
-
-  const readmeFile = <File name="README.md">
-    <Text>{output}</Text>
-  </File>;
-
-  // TODO: generate composer block dynamically
-  const composerBlock = `
-{
-  "require": {
-    "jms/serializer": "^3.23",
-    "php-amqplib/php-amqplib": "^3.5",
-    "ramsey/uuid": "^4.7"
-  },
-  "autoload": {
-    "classmap": [
-        "src/"
-    ]
-  },
-  "require-dev": {
-    "kwn/php-rdkafka-stubs": "^2.2"
-  }
-}  
-`.trim();
-
-  const composerFile = <File name="composer.json">
-    <Text>{composerBlock}</Text>
-  </File>;
+  const composerFileRenderer = new ComposerFileRenderer();
+  const composerFile = composerFileRenderer.render(asyncapi, params);
 
   return [readmeFile, composerFile];
 }
