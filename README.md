@@ -1,3 +1,7 @@
+> # DISCLAIMER
+> 
+> This project is not production-ready. I'm actively developing it and any issue and/or PR are welcome.
+
 # asyncapi-php-template
 
 An [AsyncAPI Generator](https://www.asyncapi.com/tools/generator) template for scaffolding publisher/subscriber (or producer/consumer, or wathever) PHP applications, with a focus on type safety and polymorphism.
