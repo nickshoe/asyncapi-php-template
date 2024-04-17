@@ -19,7 +19,8 @@ export class ComposerFileRenderer {
         const composerDependencies = new Map();
         const composerDevDependencies = new Map();
 
-        composerDependencies.set('jms/serializer', '^3.23');
+        composerDependencies.set('jms/serializer', '^3.30');
+        composerDependencies.set('doctrine/annotations', '^2.0');
         composerDependencies.set('ramsey/uuid', '^4.7');
 
         switch (serverProtocol) {
