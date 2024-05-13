@@ -150,6 +150,10 @@ export class ClassHierarchyEvaluator {
     const schemasMap = this.asyncapi.allSchemas();
 
     for (const [key, schema] of schemasMap) {
+      if (key.match(/^<anonymous-schema-\d+>$/) !== null) {
+        continue;
+      }
+
       if (schema.type() === "object") {
         this.#evaluateObjectSchema(schema);
       }
