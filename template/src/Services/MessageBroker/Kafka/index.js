@@ -1,6 +1,6 @@
 import { File, Text } from "@asyncapi/generator-react-sdk";
 import { render } from "ejs";
-import { Utils } from "../../../../src/utils";
+import { Utils } from "../../../../../src/utils";
 
 const fs = require('fs');
 
@@ -8,7 +8,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     const servicesNamespace = params.servicesNamespace;
 
     const files = [
-        ...renderBaseClientFiles(servicesNamespace),
+        ...renderKafkaClientFiles(servicesNamespace),
     ];
 
     return files;
@@ -19,19 +19,16 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
  * @param {string} servicesNamespace 
  * @returns {JSX.Element[]}
  */
-function renderBaseClientFiles(servicesNamespace) {
+function renderKafkaClientFiles(servicesNamespace) {
     return [
-        'Client.php.ejs',
-        'ClientConfig.php.ejs',
-        'Destination.php.ejs',
-        'Message.php.ejs',
-        'Subscription.php.ejs',
-
+        'KafkaClient.php.ejs',
+        'KafkaClientConfig.php.ejs',
+        'RdKafkaMessageAckHandler.php.ejs'
     ]
         .map((templateFileName) => ({
             fileName: templateFileName,
             content: fs.readFileSync(
-                __dirname + '/../../../../src/ejs-templates/MessageBroker/' + templateFileName,
+                __dirname + '/../../../../../src/ejs-templates/MessageBroker/Kafka/' + templateFileName,
                 { encoding: 'utf8', flag: 'r' }
             ),
         }))

@@ -1,6 +1,6 @@
 import { File, Text } from "@asyncapi/generator-react-sdk";
 import { render } from "ejs";
-import { Utils } from "../../../../src/utils";
+import { Utils } from "../../../../../src/utils";
 
 const fs = require('fs');
 
@@ -8,7 +8,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
     const servicesNamespace = params.servicesNamespace;
 
     const files = [
-        ...renderBaseClientFiles(servicesNamespace),
+        ...renderAMQPClientFiles(servicesNamespace),
     ];
 
     return files;
@@ -19,19 +19,16 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
  * @param {string} servicesNamespace 
  * @returns {JSX.Element[]}
  */
-function renderBaseClientFiles(servicesNamespace) {
+function renderAMQPClientFiles(servicesNamespace) {
     return [
-        'Client.php.ejs',
-        'ClientConfig.php.ejs',
-        'Destination.php.ejs',
-        'Message.php.ejs',
-        'Subscription.php.ejs',
-
+        'AMQPClient.php.ejs',
+        'AMQPClientConfig.php.ejs',
+        'AMQPMessageAckHandler.php.ejs'
     ]
         .map((templateFileName) => ({
             fileName: templateFileName,
             content: fs.readFileSync(
-                __dirname + '/../../../../src/ejs-templates/MessageBroker/' + templateFileName,
+                __dirname + '/../../../../../src/ejs-templates/MessageBroker/AMQP/' + templateFileName,
                 { encoding: 'utf8', flag: 'r' }
             ),
         }))
