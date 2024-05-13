@@ -221,7 +221,7 @@ export class ClassHierarchyEvaluator {
         this.#log(`Schema '${schema.uid()}' embeds the properties of the '${componentSchema.uid()}' schema`);
 
         const instanceVariables = this.#evaluateSchemaProperties(componentSchema);
-        
+
         instanceVariables.forEach((instanceVariable) => schemaClass.addInstanceVariable(instanceVariable));
       }
     }
@@ -272,7 +272,7 @@ export class ClassHierarchyEvaluator {
    */
   determineSchemaClass(schema) {
     let schemaClass;
-    
+
     const schemaType = schema.type();
     switch (schemaType) {
       case "object":
@@ -345,7 +345,7 @@ export class ClassHierarchyEvaluator {
         }
         break;
       case "boolean":
-          schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME);
+        schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME);
         break;
       default:
         throw new Error(`Unhandled schema type '${schemaType}'.`);

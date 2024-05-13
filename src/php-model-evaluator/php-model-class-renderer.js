@@ -19,6 +19,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.FLOAT_CLASS_NAME, 'float');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME, 'float');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INSTANT_CLASS_NAME, '\\DateTime'); // TODO: add param to allow usage of 'DateTimeImmutable'
+        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME, 'bool');
     }
 
     /**
@@ -314,8 +315,10 @@ ${annotationsBlock}
     renderGetterBlock(instanceVariable) {
         const type = this.renderVariableType(instanceVariable);
 
+        const verb = type === "bool" ? "is" : "get";
+
         return '' +
-            `  public function get${instanceVariable.getName().charAt(0).toUpperCase() + instanceVariable.getName().slice(1)}(): ${type}` + '\n' +
+            `  public function ${verb}${instanceVariable.getName().charAt(0).toUpperCase() + instanceVariable.getName().slice(1)}(): ${type}` + '\n' +
             '  {\n' +
             `    return $this->${instanceVariable.getName()};` + '\n' +
             '  }';
