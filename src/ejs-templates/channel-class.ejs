@@ -12,6 +12,7 @@ use Closure;
 <% for (let usedClass of usedClasses.values()) { -%>
 use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
+use Exception;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 <% if (publishOperation) { -%>

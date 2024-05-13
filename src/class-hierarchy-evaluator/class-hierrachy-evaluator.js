@@ -241,7 +241,7 @@ export class ClassHierarchyEvaluator {
     for (const propertyName in properties) {
       const propertySchema = properties[propertyName];
 
-      const propertyIsRequired = requiredProperties[propertyName] !== undefined;
+      const propertyIsRequired = requiredProperties.includes(propertyName);
 
       const instanceVariable = this.buildInstanceVariable(propertySchema, propertyName, propertyIsRequired);
 
@@ -261,10 +261,12 @@ export class ClassHierarchyEvaluator {
   buildInstanceVariable(propertySchema, propertyName, propertyIsRequired) {
     const variableClass = this.determineSchemaClass(propertySchema);
 
+    const optional = propertyIsRequired === false;
+    
     return new InstanceVariable(
       propertyName,
       variableClass,
-      propertyIsRequired,
+      optional,
       ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
       propertySchema.readOnly()
     );
