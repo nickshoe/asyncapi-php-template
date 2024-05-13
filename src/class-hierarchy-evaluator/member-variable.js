@@ -14,9 +14,15 @@ export class Variable {
    */
   #type;
 
-  constructor(name, type) {
+  /**
+   * @type {boolean}
+   */
+  #optional;
+
+  constructor(name, type, optional = false) {
     this.#name = name;
     this.#type = type;
+    this.#optional = optional;
   }
 
   /**
@@ -35,6 +41,14 @@ export class Variable {
     return this.#type;
   }
 
+  /**
+   * 
+   * @returns {boolean}
+   */
+  isOptional() {
+    return this.#optional;
+  }
+
 }
 
 export class MemberVariable extends Variable {
@@ -47,26 +61,27 @@ export class MemberVariable extends Variable {
   /**
    * @type {boolean}
    */
-  #isReadOnly;
+  #readOnly;
 
   /**
    *
    * @param {string} name
    * @param {Class} type
+   * @param {boolean} optional
    * @param {string} accessibility
-   * @param {boolean} isReadOnly
+   * @param {boolean} readOnly
    */
   constructor(
     name,
     type,
+    optional = false,
     accessibility = ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
-    isReadOnly = false
+    readOnly = false,
   ) {
-    super(name, type);
+    super(name, type, optional);
 
     this.#accessibility = accessibility;
-
-    this.#isReadOnly = isReadOnly;
+    this.#readOnly = readOnly;
   }
 
   /**
@@ -90,15 +105,15 @@ export class MemberVariable extends Variable {
    * @returns {boolean}
    */
   isReadOnly() {
-    return this.#isReadOnly;
+    return this.#readOnly;
   }
 
   /**
    * 
-   * @param {boolean} isReadOnly 
+   * @param {boolean} readOnly 
    */
-  setIsReadOnly(isReadOnly) {
-    this.#isReadOnly = isReadOnly;
+  setReadOnly(readOnly) {
+    this.#readOnly = readOnly;
   }
 
 }
@@ -108,26 +123,28 @@ export class InstanceVariable extends MemberVariable {
   /**
    * @type {boolean}
    */
-  #isDiscriminator;
+  #discriminator;
 
   /**
    *
    * @param {string} name
    * @param {Class} type
+   * @param {boolean} optional
    * @param {string} accessibility
-   * @param {boolean} isReadOnly
-   * @param {boolean} isDiscriminator
+   * @param {boolean} readOnly
+   * @param {boolean} discriminator
    */
   constructor(
     name,
     type,
+    optional = false,
     accessibility = ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
-    isReadOnly = false,
-    isDiscriminator = false
+    readOnly = false,
+    discriminator = false,
   ) {
-    super(name, type, accessibility, isReadOnly);
+    super(name, type, optional, accessibility, readOnly);
 
-    this.#isDiscriminator = isDiscriminator;
+    this.#discriminator = discriminator;
   }
 
   /**
@@ -135,15 +152,15 @@ export class InstanceVariable extends MemberVariable {
    * @returns {boolean}
    */
   isDiscriminator() {
-    return this.#isDiscriminator;
+    return this.#discriminator;
   }
 
   /**
    * 
-   * @param {boolean} isDiscriminator 
+   * @param {boolean} discriminator 
    */
-  setIsDiscrimnator(isDiscriminator) {
-    this.#isDiscriminator = isDiscriminator;
+  setDiscrimnator(discriminator) {
+    this.#discriminator = discriminator;
   }
 
 }

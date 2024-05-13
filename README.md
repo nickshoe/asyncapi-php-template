@@ -38,7 +38,7 @@ This section shows how the generated code looks like, based on the [asyncapi-exa
 
 The following code snippets show how the DTO classes representing the messages payloads get generated; in particular, they show how class-hierarchy and serialization aspects are handled. 
 
-`src/models/UserPasswordResetEvent.class.php`
+`src/models/UserPasswordResetEvent.php`
 ```php
 <?php
 
@@ -87,7 +87,7 @@ class UserPasswordResetEvent extends DomainEvent
 }
 ```
 
-`src/models/DomainEvent.class.php`
+`src/models/DomainEvent.php`
 ```php
 <?php
 

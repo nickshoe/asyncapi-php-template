@@ -37,7 +37,7 @@ function renderChannelClassFile(dto) {
         lowerCaseFirst: Utils.lowerCaseFirst
     });
 
-    const fileName = `${dto.channelClassNamePrefix}Channel.class.php`;
+    const fileName = `${dto.channelClassNamePrefix}Channel.php`; // TODO: create generator param for naming convention (e.g. ".class.php")
 
     return (
         <File name={fileName}>

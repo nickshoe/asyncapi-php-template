@@ -181,7 +181,7 @@ export class ClassHierarchyEvaluator {
 
     instanceVariables.forEach((instanceVariable) => {
       if (schema.discriminator() === instanceVariable.getName()) {
-        instanceVariable.setIsDiscrimnator(true);
+        instanceVariable.setDiscrimnator(true);
       }
 
       schemaClass.addInstanceVariable(instanceVariable);
@@ -235,10 +235,13 @@ export class ClassHierarchyEvaluator {
   #evaluateSchemaProperties(schema) {
     const instanceVariables = [];
 
+    const requiredProperties = schema.required();
     const properties = schema.properties();
 
     for (const propertyName in properties) {
       const propertySchema = properties[propertyName];
+
+      const propertyIsRequired = requiredProperties[propertyName] !== undefined;
 
       const instanceVariable = this.buildInstanceVariable(propertySchema, propertyName);
 
@@ -252,14 +255,16 @@ export class ClassHierarchyEvaluator {
    * 
    * @param {Schema} propertySchema
    * @param {string} propertyName
+   * @param {boolean} propertyIsRequired
    * @returns {Variable}
    */
-  buildInstanceVariable(propertySchema, propertyName) {
+  buildInstanceVariable(propertySchema, propertyName, propertyIsRequired) {
     const variableClass = this.determineSchemaClass(propertySchema);
 
     return new InstanceVariable(
       propertyName,
       variableClass,
+      propertyIsRequired,
       ClassHierarchyEvaluator.PRIVATE_ACCESS_MODIFIER,
       propertySchema.readOnly()
     );

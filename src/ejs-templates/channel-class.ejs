@@ -33,7 +33,10 @@ class <%= channelClassNamePrefix %>Channel
 
     private Client $client;
     private Destination $destination;
-    private ?Subscription $subscription;
+    /**
+     * @noinspection All
+     */
+    private Subscription|null $subscription;
 
     private Serializer $serializer;
 
@@ -46,10 +49,6 @@ class <%= channelClassNamePrefix %>Channel
 
     public function __construct(Client $client<%= channel.hasParameters() ? ', array $channelParameters' : '' %>)
     {
-        if (!$client->isConnected()) {
-            throw new RuntimeException('The message broker client must already be connected.');
-        }
-
         $this->client = $client;
         $this->destination = new Destination(self::DESTINATION_NAME<%= channel.hasParameters() ? ', $channelParameters' : '' %>);
         $this->subscription = null;
@@ -65,8 +64,16 @@ class <%= channelClassNamePrefix %>Channel
     }
 <%# -%>
 <% if (publishOperation) { %>
+    /**
+     * @noinspection PhpUnused
+     * @throws Exception
+     */
     public function <%= publishOperation.name %>(<%= publishOperation.payload.name %> $<%= lowerCaseFirst(publishOperation.payload.name) %>): void
     {
+        if (!$this->client->isConnected()) {
+            $this->client->connect();
+        }
+
         $message = $this->buildMessageWithObject($<%= lowerCaseFirst(publishOperation.payload.name) %>);
 
         $this->client->publish($message, $this->destination);
@@ -77,18 +84,36 @@ class <%= channelClassNamePrefix %>Channel
         $messageId = Uuid::uuid4();
         $messageBody = $this->serializer->serialize($object, 'json');
 
-        $message = new Message($messageId, $messageBody);
-
-        return $message;
+        return new Message($messageId, $messageBody);
     }
 <% } -%>
 <%# -%>
 <% if (subscribeOperation) { %>
+    /**
+     * @throws Exception
+     */
+    public function listen(): void
+    {
+        if (!$this->client->isConnected()) {
+            $this->client->connect();
+        }
+
+        $this->subscription = $this->subscribeToDestination();
+
+        $this->client->listen();
+    }
+
+    /**
+     * @noinspection PhpUnused
+     */
     public function <%= subscribeOperation.name %>(Closure $closure): void
     {
         $this-><%= lowerCaseFirst(subscribeOperation.payload.name) %>Closure = $closure;
     }
 <% for( let index = 0; index < subscribeOperation.payload.subClasses.length; index++ ) { %>
+    /**
+     * @noinspection PhpUnused
+     */
     public function on<%= subscribeOperation.payload.subClasses[index].name %>(Closure $closure): void
     {
         $this-><%= lowerCaseFirst(subscribeOperation.payload.subClasses[index].name) %>Closure = $closure;
@@ -147,21 +172,12 @@ class <%= channelClassNamePrefix %>Channel
         $type = $this->getFullyQualifiedClassName('<%= subscribeOperation.payload.name %>');
 <% } -%>
 
-        $object = $this->serializer->deserialize($body, $type, 'json');
-
-        return $object;
+        return $this->serializer->deserialize($body, $type, 'json');
     }
 
     private function getFullyQualifiedClassName($className): string
     {
         return self::MODELS_NAMESPACE . '\\' . $className;
-    }
-
-    public function listen(): void
-    {
-        $this->subscription = $this->subscribeToDestination();
-        
-        $this->client->listen();
     }
 <% } -%>
 

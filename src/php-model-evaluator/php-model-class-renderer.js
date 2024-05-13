@@ -64,7 +64,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
      * @returns {string}
      */
     renderClassFileName(currentClass) {
-        return `${currentClass.getName()}.class.php`;
+        return `${currentClass.getName()}.php`; // TODO: create generator param for naming convention (e.g. ".class.php")
     }
 
     /**
@@ -253,13 +253,7 @@ ${annotationsBlock}
                 currentClass.getSuperClass()
                     .getInstanceVariables()
                     .filter((instanceVariable) => !instanceVariable.isDiscriminator())
-                    .map((instanceVariable) => {
-                        const type = this.renderVariableType(instanceVariable);
-
-                        const variableName = '$' + instanceVariable.getName();
-
-                        return `${type} ${variableName}`;
-                    })
+                    .map((instanceVariable) => this.renderMethodParameter(instanceVariable))
             );
         }
 
@@ -267,13 +261,7 @@ ${annotationsBlock}
             currentClass
                 .getInstanceVariables()
                 .filter((instanceVariable) => !instanceVariable.isDiscriminator())
-                .map((instanceVariable) => {
-                    const type = this.renderVariableType(instanceVariable);
-
-                    const variableName = '$' + instanceVariable.getName();
-
-                    return `${type} ${variableName}`;
-                })
+                .map((instanceVariable) => this.renderMethodParameter(instanceVariable))
         );
 
         let superClassConstruction = '';
@@ -299,6 +287,19 @@ ${annotationsBlock}
             (superClassConstruction !== '' ? superClassConstruction + '\n' : '') +
             (constructorAssignments !== '' ? constructorAssignments + '\n' : '') +
             '  }';
+    }
+
+    /**
+     * 
+     * @param {InstanceVariable} instanceVariable 
+     * @returns 
+     */
+    renderMethodParameter(instanceVariable) {
+        const type = this.renderVariableType(instanceVariable) + instanceVariable.isOptional() ? '|null' : '';
+
+        const variableName = '$' + instanceVariable.getName();
+
+        return `${type} ${variableName}`;
     }
 
     /**
