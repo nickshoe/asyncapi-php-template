@@ -2,7 +2,6 @@
 
 namespace AsyncAPI\Services\MessageBroker; // TODO: use services namespace value specified as param
 
-
 class Destination
 {
 
