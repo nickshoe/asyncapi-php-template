@@ -5,7 +5,6 @@ namespace AsyncAPI\Services\MessageBroker\Kafka; // TODO: use services namespace
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
-use AsyncAPI\Services\MessageBroker\MessageAckHandler;
 use AsyncAPI\Services\MessageBroker\Subscription;
 use Closure;
 use RuntimeException;
@@ -213,19 +212,4 @@ class KafkaClient implements Client
         }
     }
 
-}
-
-class RdKafkaMessageAckHandler implements MessageAckHandler
-{
-    private \RdKafka\Message $rdKafkaMessage;
-
-    public function __construct(\RdKafka\Message $rdKafkaMessage)
-    {
-        $this->rdKafkaMessage = $rdKafkaMessage;
-    }
-
-    public function handleAck(): void
-    {
-        // TODO: should ack?
-    }
 }

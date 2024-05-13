@@ -5,9 +5,9 @@ namespace AsyncAPI\Services\MessageBroker\AMQP; // TODO: use services namespace 
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
 use AsyncAPI\Services\MessageBroker\Message;
-use AsyncAPI\Services\MessageBroker\MessageAckHandler;
 use AsyncAPI\Services\MessageBroker\Subscription;
 use Closure;
+use Exception;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -28,6 +28,9 @@ class AMQPClient implements Client
         $this->config = $config;
     }
 
+    /**
+     * @throws Exception
+     */
     public function connect(): void
     {
         if ($this->channel !== null) {
@@ -36,7 +39,7 @@ class AMQPClient implements Client
             }
         }
 
-        if ($this->connection != null) {
+        if ($this->connection !== null) {
             if ($this->connection->isConnected()) {
                 throw new RuntimeException("Already connected.");
             }
@@ -104,9 +107,12 @@ class AMQPClient implements Client
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function disconnect(): void
     {
-        if ($this->connection == null) {
+        if ($this->connection === null) {
             throw new RuntimeException("Connection is null.");
         }
 
@@ -114,7 +120,7 @@ class AMQPClient implements Client
             throw new RuntimeException("Connection is not established.");
         }
 
-        if ($this->channel == null) {
+        if ($this->channel === null) {
             throw new RuntimeException("Channel is null.");
         }
 
@@ -129,6 +135,10 @@ class AMQPClient implements Client
 
     public function isConnected(): bool
     {
+        if ($this->connection === null) {
+            return false;
+        }
+
         return $this->connection->isConnected();
     }
 
@@ -146,19 +156,4 @@ class AMQPClient implements Client
         }
     }
 
-}
-
-class AMQPMessageAckHandler implements MessageAckHandler
-{
-    private AMQPMessage $amqpMessage;
-
-    public function __construct(AMQPMessage $amqpMessage)
-    {
-        $this->amqpMessage = $amqpMessage;
-    }
-
-    public function handleAck(): void
-    {
-        $this->amqpMessage->ack();
-    }
 }

@@ -13,7 +13,7 @@ interface Client
      */
     function connect(): void;
 
-    function publish(Message $message, Destination $channel): void;
+    function publish(Message $message, Destination $destination): void;
 
     function subscribe(Destination $destination, Closure $handler): Subscription;
 
