@@ -42,6 +42,10 @@
       "server": {
         "description": "The server to be used for code generation output.",
         "required": true
+      },
+      "protocol": {
+        "description": "The protocol to be considered for client code generation output.",
+        "required": true
       }
     }
   },

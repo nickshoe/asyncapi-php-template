@@ -1,8 +1,8 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker\AMQP; // TODO: use services namespace value specified as param
+namespace <%= servicesNamespace %>\MessageBroker\AMQP;
 
-use AsyncAPI\Services\MessageBroker\MessageAckHandler;
+use <%= servicesNamespace %>\MessageBroker\MessageAckHandler;
 use PhpAmqpLib\Message\AMQPMessage;
 
 class AMQPMessageAckHandler implements MessageAckHandler

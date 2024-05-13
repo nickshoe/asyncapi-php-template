@@ -23,7 +23,7 @@ export default function ({ asyncapi, params, originalAsyncAPI }) {
 
 /**
  * 
- * @param {ChannelDTO} dto 
+ * @param {ChannelDTO} dto
  * @returns {JSX.Element}
  */
 function renderChannelClassFile(dto) {
