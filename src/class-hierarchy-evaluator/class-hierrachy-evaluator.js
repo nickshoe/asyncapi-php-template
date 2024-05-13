@@ -243,7 +243,7 @@ export class ClassHierarchyEvaluator {
 
       const propertyIsRequired = requiredProperties[propertyName] !== undefined;
 
-      const instanceVariable = this.buildInstanceVariable(propertySchema, propertyName);
+      const instanceVariable = this.buildInstanceVariable(propertySchema, propertyName, propertyIsRequired);
 
       instanceVariables.push(instanceVariable);
     }

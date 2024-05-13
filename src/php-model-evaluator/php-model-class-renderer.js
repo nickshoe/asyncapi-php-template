@@ -213,11 +213,16 @@ ${annotationsBlock}
 
                 const annotation = this.#renderInstanceVariableAnnotationBlock(instanceVariable);
 
-                return `${annotation != '' ? annotation + '\n' : ''}  ${declaration};`;
+                return `${annotation !== '' ? annotation + '\n' : ''}  ${declaration};`;
             })
-            .join(`\n`);
+            .join(`\n\n`);
     }
 
+    /**
+     * 
+     * @param {InstanceVariable} instanceVariable 
+     * @returns {string}
+     */
     #renderInstanceVariableAnnotationBlock(instanceVariable) {
         if (instanceVariable.getType().getName() === ClassHierarchyEvaluator.INSTANT_CLASS_NAME) {
             return `
@@ -229,9 +234,9 @@ ${annotationsBlock}
 
         if (instanceVariable.getType().getName() === ClassHierarchyEvaluator.ARRAY_CLASS_NAME) {
             return `
-/**
- * @Type("array")
- */
+  /**
+   * @Type("array")
+   */
 `.replace(/^\n/g, '').trimEnd();
         }
 
