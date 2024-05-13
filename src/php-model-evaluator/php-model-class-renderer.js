@@ -295,11 +295,12 @@ ${annotationsBlock}
      * @returns 
      */
     renderMethodParameter(instanceVariable) {
-        const type = this.renderVariableType(instanceVariable) + instanceVariable.isOptional() ? '|null' : '';
+        const optionality = instanceVariable.isOptional() ? '|null' : '';
+        const type = this.renderVariableType(instanceVariable);
 
         const variableName = '$' + instanceVariable.getName();
 
-        return `${type} ${variableName}`;
+        return `${type}${optionality} ${variableName}`;
     }
 
     /**
