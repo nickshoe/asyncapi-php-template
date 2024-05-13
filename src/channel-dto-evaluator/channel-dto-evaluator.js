@@ -242,6 +242,8 @@ export class ChannelDTOEvaluator {
                 return GeneratorFactory.STRING_GENERATOR().apply(instanceVariable.getName());
             case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
                 return faker.datatype.datetime();
+            case ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME:
+                return faker.datatype.boolean();
             default:
                 return faker.datatype.string();
         }

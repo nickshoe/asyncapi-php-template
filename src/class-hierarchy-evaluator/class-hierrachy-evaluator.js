@@ -16,6 +16,7 @@ const NUMBER_CLASS_NAME = "Number";
 const FLOAT_CLASS_NAME = "Float";
 const DOUBLE_CLASS_NAME = "Double";
 const INSTANT_CLASS_NAME = "Instant";
+const BOOLEAN_CLASS_NAME = "Boolean";
 
 export class ClassHierarchyEvaluator {
 
@@ -65,6 +66,10 @@ export class ClassHierarchyEvaluator {
 
   static get INSTANT_CLASS_NAME() {
     return INSTANT_CLASS_NAME;
+  }
+
+  static get BOOLEAN_CLASS_NAME() {
+    return BOOLEAN_CLASS_NAME;
   }
 
   /**
@@ -122,6 +127,11 @@ export class ClassHierarchyEvaluator {
     instantClass.setSuperClass(objectClass);
     objectClass.addSubClass(instantClass);
     this.classHierarchy.addClass(instantClass);
+
+    const booleanClass = new Class(ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME);
+    instantClass.setSuperClass(objectClass);
+    objectClass.addSubClass(booleanClass);
+    this.classHierarchy.addClass(booleanClass);
   }
 
   /**
@@ -333,6 +343,9 @@ export class ClassHierarchyEvaluator {
               schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.NUMBER_CLASS_NAME);
           }
         }
+        break;
+      case "boolean":
+        schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME);
         break;
       default:
         throw new Error(`Unhandled schema type '${schemaType}'.`);
