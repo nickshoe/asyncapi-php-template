@@ -113,7 +113,15 @@ export class PhpModelClassRenderer extends ClassRenderer {
             });
 
         currentClass.getInstanceVariables()
-            .filter((instanceVariable) => instanceVariable.getType().getName() === ClassHierarchyEvaluator.INSTANT_CLASS_NAME)
+            .filter((instanceVariable) => {
+                switch (instanceVariable.getType().getName()) {
+                    case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
+                    case ClassHierarchyEvaluator.ARRAY_CLASS_NAME:
+                        return true;
+                    default:
+                        return false;
+                }
+            })
             .forEach(_ => usesMap.set('JMS\\Serializer\\Annotation\\Type', 'use JMS\\Serializer\\Annotation\\Type;'));
 
         const uses = Array.from(usesMap.values());
@@ -216,6 +224,14 @@ ${annotationsBlock}
   /**
    * @Type("DateTime<'Y-m-d\\TH:i:s.uO'>")
    */
+`.replace(/^\n/g, '').trimEnd();
+        }
+
+        if (instanceVariable.getType().getName() === ClassHierarchyEvaluator.ARRAY_CLASS_NAME) {
+            return `
+/**
+ * @Type("array")
+ */
 `.replace(/^\n/g, '').trimEnd();
         }
 
