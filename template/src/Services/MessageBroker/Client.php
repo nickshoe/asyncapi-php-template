@@ -1,6 +1,6 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker; // TODO: create a generator param
+namespace AsyncAPI\Services\MessageBroker; // TODO: use services namespace value specified as param
 
 use Closure;
 use Exception;

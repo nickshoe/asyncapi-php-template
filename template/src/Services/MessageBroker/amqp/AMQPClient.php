@@ -1,6 +1,6 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker\AMQP;
+namespace AsyncAPI\Services\MessageBroker\AMQP; // TODO: use services namespace value specified as param
 
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
@@ -18,8 +18,8 @@ class AMQPClient implements Client
 
     private AMQPClientConfig $config;
 
-    private ?AMQPStreamConnection $connection = null;
-    private ?AMQPChannel $channel = null;
+    private AMQPStreamConnection|null $connection = null;
+    private AMQPChannel|null $channel = null;
 
     private bool $shouldDeclareDestination = false; // TODO: make it configurable
 

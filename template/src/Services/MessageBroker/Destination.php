@@ -1,6 +1,7 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker;
+namespace AsyncAPI\Services\MessageBroker; // TODO: use services namespace value specified as param
+
 
 class Destination
 {

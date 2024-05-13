@@ -1,6 +1,6 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker\Kafka;
+namespace AsyncAPI\Services\MessageBroker\Kafka; // TODO: use services namespace value specified as param
 
 use AsyncAPI\Services\MessageBroker\ClientConfig;
 

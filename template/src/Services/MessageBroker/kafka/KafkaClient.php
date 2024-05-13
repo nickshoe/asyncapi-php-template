@@ -1,6 +1,6 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker\Kafka;
+namespace AsyncAPI\Services\MessageBroker\Kafka; // TODO: use services namespace value specified as param
 
 use AsyncAPI\Services\MessageBroker\Client;
 use AsyncAPI\Services\MessageBroker\Destination;
@@ -19,8 +19,8 @@ class KafkaClient implements Client
 
     private \RdKafka\Conf $rdKafkaConsumerConf;
     private \RdKafka\Conf $rdKafkaProducerConf;
-    private ?\RdKafka\Producer $rdKafkaProducer;
-    private ?\RdKafka\KafkaConsumer $rdKafkaConsumer;
+    private \RdKafka\Producer|null $rdKafkaProducer;
+    private \RdKafka\KafkaConsumer|null $rdKafkaConsumer;
 
     private Closure $handler;
 

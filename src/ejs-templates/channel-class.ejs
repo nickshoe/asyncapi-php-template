@@ -2,16 +2,16 @@
 
 namespace <%= servicesNamespace %>\Channels;
 
-use AsyncAPI\Services\MessageBroker\Client;
-use AsyncAPI\Services\MessageBroker\Destination;
-use AsyncAPI\Services\MessageBroker\Message;
-use AsyncAPI\Services\MessageBroker\Subscription;
-<% if (subscribeOperation) { -%>
-use Closure;
-<% } -%>
 <% for (let usedClass of usedClasses.values()) { -%>
 use <%= modelsNamespace %>\<%= usedClass %>;
 <% } -%>
+<% if (subscribeOperation) { -%>
+use Closure;
+<% } -%>
+use <%= servicesNamespace %>\MessageBroker\Client;
+use <%= servicesNamespace %>\MessageBroker\Destination;
+use <%= servicesNamespace %>\MessageBroker\Message;
+use <%= servicesNamespace %>\MessageBroker\Subscription;
 use Exception;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;

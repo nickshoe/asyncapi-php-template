@@ -203,7 +203,7 @@ ${annotationsBlock}
 
                 const attribute = instanceVariable.isReadOnly() ? 'readonly' : '';
 
-                const type = this.renderVariableType(instanceVariable);
+                const type = this.renderVariableType(instanceVariable) + (instanceVariable.isOptional() ? '|null' : '');
 
                 const variableName = '$' + instanceVariable.getName();
 
@@ -300,12 +300,11 @@ ${annotationsBlock}
      * @returns 
      */
     renderMethodParameter(instanceVariable) {
-        const optionality = instanceVariable.isOptional() ? '|null' : '';
-        const type = this.renderVariableType(instanceVariable);
+        const type = this.renderVariableType(instanceVariable) + (instanceVariable.isOptional() ? '|null' : '');
 
         const variableName = '$' + instanceVariable.getName();
 
-        return `${type}${optionality} ${variableName}`;
+        return `${type} ${variableName}`;
     }
 
     /**

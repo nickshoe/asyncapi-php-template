@@ -1,6 +1,6 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker;
+namespace AsyncAPI\Services\MessageBroker; // TODO: use services namespace value specified as param
 
 use RuntimeException;
 
@@ -11,7 +11,7 @@ class Message
     private string $body;
     private bool $alreadyAcked;
 
-    private ?MessageAckHandler $ackHandler = null;
+    private MessageAckHandler|null $ackHandler = null;
 
     public function __construct(string $id, string $body)
     {

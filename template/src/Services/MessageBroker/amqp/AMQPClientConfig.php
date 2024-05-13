@@ -1,6 +1,6 @@
 <?php
 
-namespace AsyncAPI\Services\MessageBroker\AMQP;
+namespace AsyncAPI\Services\MessageBroker\AMQP; // TODO: use services namespace value specified as param
 
 use AsyncAPI\Services\MessageBroker\ClientConfig;
 
