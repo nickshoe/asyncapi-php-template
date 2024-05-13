@@ -169,9 +169,7 @@ export class Class {
    * @param {TypeVariable} typeVariable 
    */
   addTypeVariable(typeVariable) {
-    if (this.#typeVariables.get(typeVariable.getName()) !== undefined) {
-      throw new Error(`There already exist a type variable named ${typeVariable.getName()}`);
-    }
+    // TODO: should throw on type variable name already exist?
 
     this.#typeVariables.set(typeVariable.getName(), typeVariable);
   }

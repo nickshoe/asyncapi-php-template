@@ -292,8 +292,9 @@ export class ClassHierarchyEvaluator {
           throw new Error('Array of multiple types currently not supported');
         }
 
+        // TODO: refactor
         const typeVariableClass = this.determineSchemaClass(itemsSchema);
-        const typeVariable = new TypeVariable('T', typeVariableClass); // TODO: refactor + should handle multiple type variables?
+        const typeVariable = this.determineTypeVariable(typeVariableClass);
 
         schemaClass.addTypeVariable(typeVariable);
         break;
@@ -356,6 +357,17 @@ export class ClassHierarchyEvaluator {
     }
 
     return schemaClass;
+  }
+
+  /**
+   * 
+   * @param {Class} typeVariableClass
+   * @returns {TypeVariable}
+   */
+  determineTypeVariable(typeVariableClass) {
+    const typeVariable = new TypeVariable('T', typeVariableClass);
+
+    return typeVariable;
   }
 
   /**
