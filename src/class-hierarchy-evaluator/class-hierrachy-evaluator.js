@@ -319,7 +319,7 @@ export class ClassHierarchyEvaluator {
               schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
               break;
             case 'byte':
-              // TODO: should it be treated any differently?
+              // TODO: should it be treated any differently (i.e. base64 encoding/decoding)?
               schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
               break;
             default:
