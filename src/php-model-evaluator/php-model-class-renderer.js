@@ -225,6 +225,7 @@ ${annotationsBlock}
      */
     #renderInstanceVariableAnnotationBlock(instanceVariable) {
         if (instanceVariable.getType().getName() === ClassHierarchyEvaluator.INSTANT_CLASS_NAME) {
+            // TODO: add phpdoc var typing
             return `
   /**
    * @Type("DateTime<'Y-m-d\\TH:i:s.uO'>")
@@ -233,6 +234,7 @@ ${annotationsBlock}
         }
 
         if (instanceVariable.getType().getName() === ClassHierarchyEvaluator.ARRAY_CLASS_NAME) {
+            // TODO: add phpdoc var typing
             return `
   /**
    * @Type("array")
@@ -339,6 +341,7 @@ ${annotationsBlock}
 
         const verb = type === "bool" ? "is" : "get";
 
+        // TODO: add phpdoc for array typing
         return '' +
             `  public function ${verb}${instanceVariable.getName().charAt(0).toUpperCase() + instanceVariable.getName().slice(1)}(): ${type}` + '\n' +
             '  {\n' +
@@ -356,6 +359,7 @@ ${annotationsBlock}
 
         const variableName = '$' + instanceVariable.getName();
 
+        // TODO: add phpdoc for array typing
         return '' +
             `  public function set${instanceVariable.getName().charAt(0).toUpperCase() + instanceVariable.getName().slice(1)}(${type} ${variableName}): void` + '\n' +
             '  {\n' +
