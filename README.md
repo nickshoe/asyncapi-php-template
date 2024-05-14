@@ -27,7 +27,7 @@ npm install --save-dev @nickshoe/asyncapi-php-template
 Launch the generator, specifying `@nickshoe/asyncapi-php-template` as the template name:
 
 ```shell
-npx ag <path-to-asyncapi-yaml> @nickshoe/asyncapi-php-template -p server=<server-name> -o ./output
+npx asyncapi-generator <path-to-asyncapi-yaml> @nickshoe/asyncapi-php-template -p server=<server-name> -o ./output
 ```
 
 ## Example
