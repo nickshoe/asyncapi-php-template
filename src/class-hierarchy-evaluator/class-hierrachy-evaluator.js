@@ -318,6 +318,10 @@ export class ClassHierarchyEvaluator {
             case 'date-time':
               schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.INSTANT_CLASS_NAME);
               break;
+            case 'byte':
+              // TODO: should it be treated any differently?
+              schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
+              break;
             default:
               console.warn(`Treating unknown type '${schemaType}' format '${schema.format()}' as a generic string.`);
               schemaClass = this.classHierarchy.getClass(ClassHierarchyEvaluator.STRING_CLASS_NAME);
