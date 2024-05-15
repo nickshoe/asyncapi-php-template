@@ -18,7 +18,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.NUMBER_CLASS_NAME, 'int');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.FLOAT_CLASS_NAME, 'float');
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.DOUBLE_CLASS_NAME, 'float');
-        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INSTANT_CLASS_NAME, '\\DateTime'); // TODO: add param to allow usage of 'DateTimeImmutable'
+        this.#builtInTypeMappings.set(ClassHierarchyEvaluator.INSTANT_CLASS_NAME, 'DateTime'); // TODO: add param to allow usage of 'DateTimeImmutable'
         this.#builtInTypeMappings.set(ClassHierarchyEvaluator.BOOLEAN_CLASS_NAME, 'bool');
     }
 
@@ -111,6 +111,16 @@ export class PhpModelClassRenderer extends ClassRenderer {
 
                 usesMap.set(`${namespace}\\${type.getName()}`, `use ${namespace}\\${type.getName()};`);
             });
+
+        currentClass.getInstanceVariables()
+            .filter((instanceVariable) => {
+                switch (instanceVariable.getType().getName()) {
+                    case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
+                    default:
+                        return false;
+                }
+            })
+            .forEach(_ => usesMap.set('Datetime', 'use DateTime;'));
 
         currentClass.getInstanceVariables()
             .filter((instanceVariable) => {
