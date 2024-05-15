@@ -113,15 +113,15 @@ export class PhpModelClassRenderer extends ClassRenderer {
             });
 
         currentClass.getInstanceVariables()
-            .filter((instanceVariable) => {
+            .forEach((instanceVariable) => {
                 switch (instanceVariable.getType().getName()) {
                     case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
-                        return true;
+                        usesMap.set('Datetime', 'use DateTime;');
+                        return;
                     default:
-                        return false;
+                        return;
                 }
-            })
-            .forEach(_ => usesMap.set('Datetime', 'use DateTime;'));
+            });
 
         currentClass.getInstanceVariables()
             .filter((instanceVariable) => {
