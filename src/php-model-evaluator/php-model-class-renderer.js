@@ -116,6 +116,7 @@ export class PhpModelClassRenderer extends ClassRenderer {
             .filter((instanceVariable) => {
                 switch (instanceVariable.getType().getName()) {
                     case ClassHierarchyEvaluator.INSTANT_CLASS_NAME:
+                        return true;
                     default:
                         return false;
                 }
