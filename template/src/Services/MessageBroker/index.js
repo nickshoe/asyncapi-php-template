@@ -25,6 +25,7 @@ function renderBaseClientFiles(servicesNamespace) {
         'ClientConfig.php.ejs',
         'Destination.php.ejs',
         'Message.php.ejs',
+        'MessageAckHandler.php.ejs',
         'Subscription.php.ejs',
 
     ]
